@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using UnityEngine.SceneManagement;
+using System;
 
 // 1. 대화 데이터 구조체 (이름 추가됨)
 [System.Serializable]
@@ -18,6 +20,8 @@ public struct DialogueLine
 public class DialogueManager : MonoBehaviour
 {
     public static DialogueManager instance;
+
+    public Action onDialogueEndCallback; // 대화가 끝나면 실행할 행동을 저장하는 변수
 
     [Header("UI 연결")]
     public GameObject dialoguePanel;
@@ -52,6 +56,7 @@ public class DialogueManager : MonoBehaviour
         }
 
         DisplayNextSentence();
+
     }
 
     // 플레이어가 스페이스바(E)를 누를 때마다 실행됨
@@ -115,5 +120,12 @@ public class DialogueManager : MonoBehaviour
     {
         isDialogueActive = false;
         dialoguePanel.SetActive(false);
+
+        // 대화가 끝났을 때 예약된 행동이 있다면 실행
+        if (onDialogueEndCallback != null)
+        {
+            onDialogueEndCallback.Invoke(); // 예약된 코드 실행
+            onDialogueEndCallback = null;   // 실행 후 비워주기 (다음 대화를 위해)
+        }
     }
 }

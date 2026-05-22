@@ -21,12 +21,12 @@ MonoBehaviour:
   - keyChar: ///
     textColor: {r: 1, g: 1, b: 1, a: 1}
     backgroundColor: {r: 0.007127063, g: 0.33497727, b: 0.5396226, a: 1}
-    textAlignment: 5
+    textAlignment: 4
     fontStyle: 1
   - keyChar: '#'
     textColor: {r: 1, g: 1, b: 1, a: 1}
     backgroundColor: {r: 0, g: 0.8113208, b: 0.7460421, a: 1}
-    textAlignment: 3
+    textAlignment: 4
     fontStyle: 1
   - keyChar: '@'
     textColor: {r: 1, g: 1, b: 1, a: 1}
@@ -41,5 +41,10 @@ MonoBehaviour:
   - keyChar: $$
     textColor: {r: 1, g: 1, b: 1, a: 1}
     backgroundColor: {r: 1, g: 0, b: 0.9264436, a: 1}
+    textAlignment: 4
+    fontStyle: 0
+  - keyChar: $@
+    textColor: {r: 1, g: 1, b: 1, a: 1}
+    backgroundColor: {r: 1, g: 0.3808405, b: 0, a: 1}
     textAlignment: 4
     fontStyle: 0
