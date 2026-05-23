@@ -21,6 +21,9 @@ MonoBehaviour:
   m_OverrideGlobalSceneList: 1
   m_Scenes:
   - m_enabled: 1
+    m_path: Assets/01. Scenes/MainMenuScene.unity
+    m_guid: 5cee65ce22291644cbbd1038b9fbdd21
+  - m_enabled: 1
     m_path: Assets/01. Scenes/PrologScene.unity
     m_guid: 296b0f8b98bd0d042915dff1cdc4b8c6
   - m_enabled: 1
