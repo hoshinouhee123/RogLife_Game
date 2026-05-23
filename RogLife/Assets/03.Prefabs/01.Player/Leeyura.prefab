@@ -16,7 +16,7 @@ GameObject:
   - component: {fileID: 5264277471615597871}
   m_Layer: 0
   m_Name: Leeyura
-  m_TagString: Untagged
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -62,7 +62,7 @@ Rigidbody2D:
   m_Interpolate: 0
   m_SleepingMode: 1
   m_CollisionDetection: 1
-  m_Constraints: 0
+  m_Constraints: 4
 --- !u!212 &3367776565471654957
 SpriteRenderer:
   serializedVersion: 2
