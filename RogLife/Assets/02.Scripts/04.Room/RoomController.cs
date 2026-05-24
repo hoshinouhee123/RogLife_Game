@@ -14,10 +14,15 @@ public class RoomController : MonoBehaviour
     public GameObject blockLeft;
     public GameObject blockRight;
 
-    // MapGenerator가 맵을 다 만들고 나서 이 함수를 부를 겁니다.
+    [Header("미니맵 통로 아이콘)")]
+    public GameObject mapIconTop;
+    public GameObject mapIconBottom;
+    public GameObject mapIconLeft;
+    public GameObject mapIconRight;
+
     public void SetupDoors(bool hasTop, bool hasBottom, bool hasLeft, bool hasRight)
     {
-        // 연결된 방이 있으면 문(Door)을 켜고, 벽(Block)을 끕니다.
+        // 1. 실제 게임 화면의 문과 벽 세팅
         doorTop.SetActive(hasTop);
         blockTop.SetActive(!hasTop);
 
@@ -29,5 +34,11 @@ public class RoomController : MonoBehaviour
 
         doorRight.SetActive(hasRight);
         blockRight.SetActive(!hasRight);
+
+        // 2. 미니맵 통로 아이콘 세팅 (길이 있으면 켜고, 없으면 끔)
+        if (mapIconTop != null) mapIconTop.SetActive(hasTop);
+        if (mapIconBottom != null) mapIconBottom.SetActive(hasBottom);
+        if (mapIconLeft != null) mapIconLeft.SetActive(hasLeft);
+        if (mapIconRight != null) mapIconRight.SetActive(hasRight);
     }
 }

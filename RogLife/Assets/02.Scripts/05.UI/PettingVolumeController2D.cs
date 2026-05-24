@@ -120,5 +120,12 @@ public class PettingVolumeController2D : MonoBehaviour, IPointerDownHandler, IDr
     {
         bgmText.text = $"BGM: {Mathf.RoundToInt(currentBGM)}";
         sfxText.text = $"SFX: {Mathf.RoundToInt(currentSFX)}";
+
+        // 방금 만든 사운드 매니저에게 볼륨 변경하라고 명령 내리기
+        if (AudioManager.instance != null)
+        {
+            AudioManager.instance.SetBGMVolume(currentBGM);
+            AudioManager.instance.SetSFXVolume(currentSFX);
+        }
     }
 }
