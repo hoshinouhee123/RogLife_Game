@@ -7,6 +7,11 @@ public class AudioManager : MonoBehaviour
 
     public AudioMixer mainMixer; // 방금 만든 오디오 믹서 연결
 
+    [Header("UI 사운드 설정")]
+    public AudioSource uiAudioSource; // UI 전용 오디오 소스 (버튼 소리 등)
+    public AudioClip hoverSound;      // 마우스 올릴 때 소리
+    public AudioClip clickSound;      // 클릭할 때 소리
+
     private void Awake()
     {
         if (instance == null)
@@ -42,5 +47,19 @@ public class AudioManager : MonoBehaviour
     {
         float db = value <= 0.01f ? -80f : Mathf.Log10(value / 100f) * 20f;
         mainMixer.SetFloat("SFX_Vol", db);
+    }
+
+    // UI 소리 재생 함수
+    // PlayOneShot을 사용하면 소리가 겹쳐도 끊기지 않고 자연스럽게 남.
+    public void PlayHoverSound()
+    {
+        if (hoverSound != null && uiAudioSource != null)
+            uiAudioSource.PlayOneShot(hoverSound);
+    }
+
+    public void PlayClickSound()
+    {
+        if (clickSound != null && uiAudioSource != null)
+            uiAudioSource.PlayOneShot(clickSound);
     }
 }

@@ -31,6 +31,9 @@ public class DialogueManager : MonoBehaviour
 
     [Header("타이핑 효과 설정")]
     public float typingSpeed = 0.05f;      // 글자 출력 속도 (작을수록 빠름)
+    public AudioSource audioSource; // 소리를 재생할 스피커 역할
+    public AudioClip typingSound;   // 재생할 타이핑 효과음 파일
+
 
     private Queue<DialogueLine> sentences;
     public bool isDialogueActive = false;
@@ -110,6 +113,15 @@ public class DialogueManager : MonoBehaviour
         foreach (char letter in sentence.ToCharArray())
         {
             dialogueText.text += letter; // 한 글자 붙이고
+
+            if (letter != ' ' && audioSource != null && typingSound != null)
+            {
+                // 소리의 높낮이(Pitch)를 살짝 랜덤으로 섞으면 덜 지루하고 자연스러움
+                audioSource.pitch = UnityEngine.Random.Range(0.9f, 1.1f);
+                audioSource.PlayOneShot(typingSound);
+            }
+
+
             yield return new WaitForSeconds(typingSpeed); // 설정한 시간만큼 대기 (예: 0.05초 대기)
         }
 
