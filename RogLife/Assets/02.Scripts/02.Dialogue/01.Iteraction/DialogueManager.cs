@@ -53,6 +53,8 @@ public class DialogueManager : MonoBehaviour
         dialoguePanel.SetActive(true);
         sentences.Clear();
 
+        Time.timeScale = 0f;
+
         foreach (DialogueLine line in dialogueLines)
         {
             sentences.Enqueue(line);
@@ -122,7 +124,7 @@ public class DialogueManager : MonoBehaviour
             }
 
 
-            yield return new WaitForSeconds(typingSpeed); // 설정한 시간만큼 대기 (예: 0.05초 대기)
+            yield return new WaitForSecondsRealtime(typingSpeed);
         }
 
         isTyping = false; // 출력이 다 끝나면 상태 변경
@@ -130,8 +132,11 @@ public class DialogueManager : MonoBehaviour
 
     public void EndDialogue()
     {
+
         isDialogueActive = false;
         dialoguePanel.SetActive(false);
+
+        Time.timeScale = 1f;
 
         // 대화가 끝났을 때 예약된 행동이 있다면 실행
         if (onDialogueEndCallback != null)
@@ -140,4 +145,11 @@ public class DialogueManager : MonoBehaviour
             onDialogueEndCallback = null;   // 실행 후 비워주기 (다음 대화를 위해)
         }
     }
+
+    // 만약 대화 중에 씬이 넘어가거나 파괴될 경우를 대비한 안전장치
+    private void OnDisable()
+    {
+        Time.timeScale = 1f;
+    }
+
 }
