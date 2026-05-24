@@ -51,11 +51,16 @@ public class Enemy : MonoBehaviour
     public void TakeDamage(float damageAmount)
     {
         currentHealth -= damageAmount;
+
+        PlaySoundWithMixer(enemyData.hitSound);
+
         if (currentHealth <= 0) Die();
     }
 
     void Die()
     {
+        PlaySoundWithMixer(enemyData.deathSound);
+
         Destroy(gameObject);
     }
 
@@ -66,5 +71,32 @@ public class Enemy : MonoBehaviour
             // 플레이어에게 데미지 1 줌 (EnemyData의 damage를 써도 됩니다)
             collision.gameObject.GetComponent<Player>().TakeDamage(1);
         }
+    }
+
+    // ==========================================
+    // 믹서가 적용되는 임시 효과음 스피커 생성기
+    // ==========================================
+    private void PlaySoundWithMixer(AudioClip clip)
+    {
+        if (clip == null) return;
+
+        // 1. 임시 빈 게임오브젝트 만들기
+        GameObject audioObj = new GameObject("TempAudio");
+        audioObj.transform.position = transform.position;
+
+        // 2. 오디오 소스 부품 달아주기
+        AudioSource source = audioObj.AddComponent<AudioSource>();
+        source.clip = clip;
+        source.spatialBlend = 0f; // 2D 게임이므로 0(전체 볼륨 동일)으로 설정
+
+        // 3. 만들어둔 데이터에서 믹서 그룹을 가져와서 연결
+        if (enemyData.sfxMixerGroup != null)
+        {
+            source.outputAudioMixerGroup = enemyData.sfxMixerGroup;
+        }
+
+        // 4. 소리 재생 후, 클립 길이만큼 기다렸다가 오브젝트 깔끔하게 파괴
+        source.Play();
+        Destroy(audioObj, clip.length);
     }
 }

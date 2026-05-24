@@ -1128,6 +1128,11 @@ MonoBehaviour:
   - {fileID: 743272444}
   fullHeart: {fileID: 21300000, guid: c4a628aec032cff46b6622f136a72b9b, type: 3}
   emptyHeart: {fileID: 21300000, guid: 16f02530dc0279147a673bc0df1c6405, type: 3}
+  hitSprite: {fileID: 21300000, guid: c76c8ff7b25db98469a19260062dfd0e, type: 3}
+  hitSpriteTime: 0.2
+  shootSound: {fileID: 8300000, guid: a63ed682dedcc1b49a66e4f1674fb803, type: 3}
+  getHitSound: {fileID: 0}
+  sfxMixerGroup: {fileID: 973380146946736083, guid: 4c70c6fcbb7d16746ae68958f86f2bb4, type: 2}
 --- !u!1 &743272442
 GameObject:
   m_ObjectHideFlags: 0

@@ -63,8 +63,8 @@ public class MapGenerator : MonoBehaviour
                 for (int i = 0; i < enemyCount; i++)
                 {
                     // 방 안쪽 랜덤한 위치(Offset)에 소환
-                    // 방 한가운데 안전 구역(-4 ~ 4, -2 ~ 2)에만 스폰 문 근처에는 절대 안 나옴.
-                    Vector3 randomOffset = new Vector3(Random.Range(-4f, 4f), Random.Range(-2f, 2f), 0);
+                    // 방 한가운데 안전 구역(-4 ~ 4, -0.5 ~ 0.5)에만 스폰 문 근처에는 절대 안 나옴.
+                    Vector3 randomOffset = new Vector3(Random.Range(-4f, 4f), Random.Range(-0.5f, 0.5f), 0);
                     GameObject spawnedEnemy = Instantiate(enemyPrefab, worldPos + randomOffset, Quaternion.identity);
 
                     Enemy enemyScript = spawnedEnemy.GetComponent<Enemy>();

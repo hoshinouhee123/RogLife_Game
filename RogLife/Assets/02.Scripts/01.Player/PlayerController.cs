@@ -25,6 +25,8 @@ public class PlayerController : MonoBehaviour
     // 콜라이더 범위 안에 들어온 대상을 임시로 기억해둘 변수
     private InteractableObject currentInteractable = null;
 
+    public bool isHit = false;
+
     private void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
@@ -82,35 +84,35 @@ public class PlayerController : MonoBehaviour
         // ==========================================
         // 4. 입력 방향에 따른 애니메이션(스프라이트) 변경
         // ==========================================
-        if (input.sqrMagnitude > 0.01f) // 조금이라도 움직이고 있다면
+        if (!isHit) // ★ 추가됨: 피격 중이 아닐 때만 걷는 애니메이션 재생!
         {
-            if (Mathf.Abs(input.x) > Mathf.Abs(input.y))
+            if (input.sqrMagnitude > 0.01f)
             {
-                // 가로 이동이 세로 이동보다 클 때
-                if (input.x > 0) ChangeSprites(spriteRight);
-                else ChangeSprites(spriteLeft);
+                if (Mathf.Abs(input.x) > Mathf.Abs(input.y))
+                {
+                    if (input.x > 0) ChangeSprites(spriteRight);
+                    else ChangeSprites(spriteLeft);
+                }
+                else
+                {
+                    if (input.y > 0) ChangeSprites(spriteUp);
+                    else ChangeSprites(spriteDown);
+                }
+
+                timer += Time.deltaTime;
+                if (timer >= frameTime)
+                {
+                    timer = 0f;
+                    frameIndex++;
+                    if (frameIndex >= currentSprites.Length) frameIndex = 0;
+                    sr.sprite = currentSprites[frameIndex];
+                }
             }
             else
             {
-                // 세로 이동이 가로 이동보다 클 때
-                if (input.y > 0) ChangeSprites(spriteUp);
-                else ChangeSprites(spriteDown);
-            }
-
-            // 애니메이션 프레임 재생 타이머
-            timer += Time.deltaTime;
-            if (timer >= frameTime)
-            {
-                timer = 0f;
-                frameIndex++;
-                if (frameIndex >= currentSprites.Length) frameIndex = 0;
+                frameIndex = 0;
                 sr.sprite = currentSprites[frameIndex];
             }
-        }
-        else // 안 움직이고 있을 때
-        {
-            frameIndex = 0;
-            sr.sprite = currentSprites[frameIndex]; // 서있는 기본 모션으로 고정
         }
     }
 

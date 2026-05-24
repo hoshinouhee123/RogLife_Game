@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI; // UI를 다루기 위해 필수
 using System.Collections;
+using UnityEngine.Audio; // 오디오 믹서를 사용하기 위해 필수
 
 public class Player : MonoBehaviour
 {
@@ -24,12 +25,35 @@ public class Player : MonoBehaviour
     public Sprite fullHeart;        // 꽉 찬 하트 이미지
     public Sprite emptyHeart;       // 빈 하트 이미지
 
+
+    [Header("피격 연출 및 효과음")]
+    public Sprite hitSprite;          // 으윽! 하고 맞는 피격 이미지
+    public float hitSpriteTime = 0.2f;// 피격 이미지가 유지되는 시간
+    public AudioClip shootSound;      // 눈물(총알) 발사 효과음
+    public AudioClip getHitSound;     // (보너스) 플레이어가 맞았을 때 소리
+
+    // 인스펙터에서 SFX 믹서 그룹을 넣을 빈칸
+    public AudioMixerGroup sfxMixerGroup;
+
+    private AudioSource audioSource;
+    private PlayerController playerController;
     private SpriteRenderer sr;
 
     void Start()
     {
         currentHealth = maxHealth;
         sr = GetComponent<SpriteRenderer>();
+        playerController = GetComponent<PlayerController>();
+
+        // 내 몸에 오디오 소스가 없으면 자동으로 하나 달아줌
+        audioSource = GetComponent<AudioSource>();
+        if (audioSource == null) audioSource = gameObject.AddComponent<AudioSource>();
+
+        if (sfxMixerGroup != null)
+        {
+            audioSource.outputAudioMixerGroup = sfxMixerGroup;
+        }
+
         UpdateHealthUI();
     }
 
@@ -59,7 +83,9 @@ public class Player : MonoBehaviour
 
     void Shoot(Vector2 dir)
     {
-        // 총알을 생성하고 방향과 데미지를 전달
+        // 총알을 쏠 때 효과음 재생
+        if (shootSound != null) audioSource.PlayOneShot(shootSound);
+
         GameObject bullet = Instantiate(bulletPrefab, firePoint.position, Quaternion.identity);
         bullet.GetComponent<Bullet>().Setup(dir, attackDamage);
     }
@@ -67,19 +93,16 @@ public class Player : MonoBehaviour
     // 적에게 맞았을 때 호출되는 함수
     public void TakeDamage(int damage)
     {
-        if (isInvincible) return; // 무적 상태면 무시
+        if (isInvincible) return;
 
         currentHealth -= damage;
         UpdateHealthUI();
 
-        if (currentHealth <= 0)
-        {
-            Die();
-        }
-        else
-        {
-            StartCoroutine(InvincibilityRoutine());
-        }
+        // 맞았을 때 플레이어 비명 소리 재생
+        if (getHitSound != null) audioSource.PlayOneShot(getHitSound);
+
+        if (currentHealth <= 0) Die();
+        else StartCoroutine(InvincibilityRoutine());
     }
 
     // 하트 UI 업데이트 로직
@@ -98,17 +121,29 @@ public class Player : MonoBehaviour
     }
 
     // 맞았을 때 깜빡거리는 무적 시간 연출
+    // 무적 시간 연출에 피격 스프라이트 기능 추가
     IEnumerator InvincibilityRoutine()
     {
         isInvincible = true;
 
-        // 깜빡거림 연출
-        for (int i = 0; i < 5; i++)
+        // 1. 피격 이미지 띄우고, 걷는 애니메이션 멈추기
+        if (playerController != null) playerController.isHit = true;
+        sr.sprite = hitSprite;
+
+        // 0.2초 동안 피격 이미지 유지
+        yield return new WaitForSeconds(hitSpriteTime);
+
+        // 다시 걷는 애니메이션으로 복귀
+        if (playerController != null) playerController.isHit = false;
+
+        // 2. 남은 무적 시간 동안 반투명하게 깜빡거리기
+        float blinkTime = invincibilityDuration - hitSpriteTime;
+        for (int i = 0; i < 4; i++)
         {
-            sr.color = new Color(1, 1, 1, 0.3f); // 반투명
-            yield return new WaitForSeconds(invincibilityDuration / 10f);
-            sr.color = Color.white; // 원상복구
-            yield return new WaitForSeconds(invincibilityDuration / 10f);
+            sr.color = new Color(1, 1, 1, 0.3f);
+            yield return new WaitForSeconds(blinkTime / 8f);
+            sr.color = Color.white;
+            yield return new WaitForSeconds(blinkTime / 8f);
         }
 
         isInvincible = false;

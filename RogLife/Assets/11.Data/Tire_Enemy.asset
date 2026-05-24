@@ -17,3 +17,6 @@ MonoBehaviour:
   maxHealth: 1
   moveSpeed: 1
   damage: 1
+  hitSound: {fileID: 0}
+  deathSound: {fileID: 0}
+  sfxMixerGroup: {fileID: 973380146946736083, guid: 4c70c6fcbb7d16746ae68958f86f2bb4, type: 2}
