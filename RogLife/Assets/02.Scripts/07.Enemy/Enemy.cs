@@ -58,4 +58,13 @@ public class Enemy : MonoBehaviour
     {
         Destroy(gameObject);
     }
+
+    private void OnCollisionStay2D(Collision2D collision)
+    {
+        if (collision.gameObject.CompareTag("Player"))
+        {
+            // 플레이어에게 데미지 1 줌 (EnemyData의 damage를 써도 됩니다)
+            collision.gameObject.GetComponent<Player>().TakeDamage(1);
+        }
+    }
 }
