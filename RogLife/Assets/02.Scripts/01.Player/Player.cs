@@ -35,6 +35,9 @@ public class Player : MonoBehaviour
     // 인스펙터에서 SFX 믹서 그룹을 넣을 빈칸
     public AudioMixerGroup sfxMixerGroup;
 
+    // [여기에 아이템 획득 효과음 변수 추가!]
+    public AudioClip itemGetSound;
+
     private AudioSource audioSource;
     private PlayerController playerController;
     private SpriteRenderer sr;
@@ -169,6 +172,11 @@ public class Player : MonoBehaviour
             UpdateHealthUI(); // 늘어난 하트 UI 새로고침
         }
 
-        // 오디오 소스가 있다면 아이템 획득 소리를 여기서 내주기
+        // [2. 여기에 효과음 재생 코드 한 줄 추가!]
+        if (itemGetSound != null)
+        {
+            audioSource.PlayOneShot(itemGetSound);
+        }
+
     }
 }

@@ -82,6 +82,10 @@ public class MapGenerator : MonoBehaviour
             // 케이스 A: 이 방이 방금 지정된 '아이템 방'이라면?
             if (pos == itemRoomPos)
             {
+
+                // 이 방의 미니맵에 '황금방 마커'를 띄우라고 명령!
+                controller.SetAsItemRoom();
+
                 // 몬스터는 안 낳고 정중앙에 아이템만 딱 1개 소환!
                 if (itemPickupPrefab != null && possibleItems.Length > 0)
                 {

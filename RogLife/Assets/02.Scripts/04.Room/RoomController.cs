@@ -17,6 +17,9 @@ public class RoomController : MonoBehaviour
     public GameObject mapIconTop; public GameObject mapIconBottom;
     public GameObject mapIconLeft; public GameObject mapIconRight;
 
+    [Header("특수 방 마커")]
+    public GameObject itemRoomMarker; // 미니맵에 띄울 황금방 아이콘
+
     private RoomController tRoom, bRoom, lRoom, rRoom;
     private bool hasT, hasB, hasL, hasR;
 
@@ -138,6 +141,16 @@ public class RoomController : MonoBehaviour
                 isCleared = true;
                 UnlockDoors();
             }
+        }
+    }
+
+    // MapGenerator가 "너 황금방 해라!" 라고 명령할 때 부를 함수
+    public void SetAsItemRoom()
+    {
+        // 미니맵 마커 켜기
+        if (itemRoomMarker != null)
+        {
+            itemRoomMarker.SetActive(true);
         }
     }
 }
