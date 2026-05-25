@@ -155,4 +155,20 @@ public class Player : MonoBehaviour
         // 여기서 게임 오버 UI를 띄우거나 씬을 재시작합니다.
         gameObject.SetActive(false);
     }
+
+    public void AcquireItem(ItemData item)
+    {
+        // 1. 공격력 증가
+        attackDamage += item.addDamage;
+
+        // 2. 체력이 늘어나는 아이템이라면?
+        if (item.addMaxHealth > 0)
+        {
+            maxHealth += item.addMaxHealth;
+            currentHealth += item.addMaxHealth; // 늘어난 만큼 피도 채워줌
+            UpdateHealthUI(); // 늘어난 하트 UI 새로고침
+        }
+
+        // 오디오 소스가 있다면 아이템 획득 소리를 여기서 내주기
+    }
 }

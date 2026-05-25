@@ -18,8 +18,12 @@ public class MapGenerator : MonoBehaviour
     public TileBase[] backgroundPattern = new TileBase[16];
 
     [Header("몬스터 소환 설정")]
-    public GameObject enemyPrefab;    // 아까 만든 빈 껍데기 Enemy_Template 프리팹
-    public EnemyData[] possibleEnemies; // 만들어둔 스탯 데이터(박쥐, 슬라임 등) 다 넣기
+    public GameObject enemyPrefab;
+    public EnemyData[] possibleEnemies;
+
+    [Header("아이템 방 설정")]
+    public GameObject itemPickupPrefab;
+    public ItemData[] possibleItems;
 
     private Dictionary<Vector2Int, GameObject> spawnedRooms = new Dictionary<Vector2Int, GameObject>();
 
@@ -33,7 +37,7 @@ public class MapGenerator : MonoBehaviour
         List<Vector2Int> roomPositions = new List<Vector2Int>();
         roomPositions.Add(Vector2Int.zero);
 
-        // 방 좌표 랜덤 생성 (기존과 동일)
+        // 1. 방 좌표 랜덤 생성
         while (roomPositions.Count < maxRooms)
         {
             Vector2Int currentPos = roomPositions[Random.Range(0, roomPositions.Count)];
@@ -43,10 +47,25 @@ public class MapGenerator : MonoBehaviour
             else if (randomDir == 1) newPos += Vector2Int.down;
             else if (randomDir == 2) newPos += Vector2Int.left;
             else if (randomDir == 3) newPos += Vector2Int.right;
+
             if (!roomPositions.Contains(newPos)) roomPositions.Add(newPos);
         }
 
-        // 방 생성 및 몬스터 소환
+        // ==========================================
+        // ★ [추가된 로직] 아이템 방 좌표 지정 (30% 확률)
+        // ==========================================
+        bool hasItemRoom = Random.Range(0, 100) < 100; // 30% 확률로 아이템 방 등장
+        Vector2Int itemRoomPos = new Vector2Int(9999, 9999); // 일단 절대 안 나올 좌표로 초기화
+
+        // 방이 2개 이상이고 당첨되었다면, 시작방(0,0)을 제외한 방 중 하나를 아이템 방으로 지정
+        if (hasItemRoom && roomPositions.Count > 1)
+        {
+            int randomIndex = Random.Range(1, roomPositions.Count);
+            itemRoomPos = roomPositions[randomIndex];
+        }
+        // ==========================================
+
+        // 2. 방 생성 및 몬스터/아이템 소환
         foreach (Vector2Int pos in roomPositions)
         {
             Vector3 worldPos = new Vector3(pos.x * roomWidth, pos.y * roomHeight, 0);
@@ -56,36 +75,46 @@ public class MapGenerator : MonoBehaviour
 
             RoomController controller = newRoom.GetComponent<RoomController>();
 
-            // ★ [추가된 부분] 시작 방(0,0)이 아니면 몬스터를 랜덤으로 소환!
-            if (pos != Vector2Int.zero && enemyPrefab != null && possibleEnemies.Length > 0)
+            // ==========================================
+            // ★ [수정된 로직] 아이템 방인지 몬스터 방인지 구분해서 소환
+            // ==========================================
+
+            // 케이스 A: 이 방이 방금 지정된 '아이템 방'이라면?
+            if (pos == itemRoomPos)
             {
-                int enemyCount = Random.Range(1, 4); // 1~3마리 랜덤 소환
+                // 몬스터는 안 낳고 정중앙에 아이템만 딱 1개 소환!
+                if (itemPickupPrefab != null && possibleItems.Length > 0)
+                {
+                    GameObject spawnedItem = Instantiate(itemPickupPrefab, worldPos, Quaternion.identity);
+
+                    ItemData randomItemData = possibleItems[Random.Range(0, possibleItems.Length)];
+                    spawnedItem.GetComponent<ItemPickup>().Setup(randomItemData);
+                }
+            }
+            // 케이스 B: 아이템 방도 아니고, 시작 방(0,0)도 아니라면? -> 평소처럼 몬스터 소환
+            else if (pos != Vector2Int.zero && enemyPrefab != null && possibleEnemies.Length > 0)
+            {
+                int enemyCount = Random.Range(1, 4);
                 for (int i = 0; i < enemyCount; i++)
                 {
-                    // 방 안쪽 랜덤한 위치(Offset)에 소환
-                    // 방 한가운데 안전 구역(-4 ~ 4, -0.5 ~ 0.5)에만 스폰 문 근처에는 절대 안 나옴.
                     Vector3 randomOffset = new Vector3(Random.Range(-4f, 4f), Random.Range(-0.5f, 0.5f), 0);
                     GameObject spawnedEnemy = Instantiate(enemyPrefab, worldPos + randomOffset, Quaternion.identity);
 
                     Enemy enemyScript = spawnedEnemy.GetComponent<Enemy>();
-
-                    // 어떤 몬스터 데이터(슬라임, 박쥐)를 줄지 랜덤으로 뽑기
                     EnemyData randomData = possibleEnemies[Random.Range(0, possibleEnemies.Length)];
-                    enemyScript.Setup(randomData); // 몬스터에게 데이터 주입!
+                    enemyScript.Setup(randomData);
 
-                    // 방의 '현재 살아있는 몬스터 리스트'에 등록
                     controller.enemiesInRoom.Add(enemyScript);
                 }
             }
         }
 
-        // 3. 문 열고 닫기 및 이웃 방 연결 세팅 (수정됨!)
+        // 3. 문 열고 닫기 및 이웃 방 연결 세팅
         foreach (var kvp in spawnedRooms)
         {
             Vector2Int pos = kvp.Key;
             RoomController controller = kvp.Value.GetComponent<RoomController>();
 
-            // 상하좌우에 방이 존재한다면, 그 방의 RoomController 스크립트를 가져옵니다.
             RoomController top = spawnedRooms.ContainsKey(pos + Vector2Int.up) ? spawnedRooms[pos + Vector2Int.up].GetComponent<RoomController>() : null;
             RoomController bottom = spawnedRooms.ContainsKey(pos + Vector2Int.down) ? spawnedRooms[pos + Vector2Int.down].GetComponent<RoomController>() : null;
             RoomController left = spawnedRooms.ContainsKey(pos + Vector2Int.left) ? spawnedRooms[pos + Vector2Int.left].GetComponent<RoomController>() : null;
@@ -93,12 +122,11 @@ public class MapGenerator : MonoBehaviour
 
             if (controller != null)
             {
-                // 이웃 방들의 정보를 통째로 넘겨줍니다.
                 controller.SetupDoors(top, bottom, left, right);
             }
         }
 
-        // 4. ★ 맵 생성이 다 끝나면, 시작 방(0,0)에 강제로 "방문 완료" 처리를 해서 불을 밝혀줍니다!
+        // 4. 맵 생성이 다 끝나면, 시작 방(0,0)에 강제로 "방문 완료" 처리를 해서 불을 밝혀줍니다!
         if (spawnedRooms.ContainsKey(Vector2Int.zero))
         {
             spawnedRooms[Vector2Int.zero].GetComponent<RoomController>().VisitRoom();
@@ -114,7 +142,6 @@ public class MapGenerator : MonoBehaviour
         int minRoomX = int.MaxValue, maxRoomX = int.MinValue;
         int minRoomY = int.MaxValue, maxRoomY = int.MinValue;
 
-        // 생성된 전체 맵의 영역(Bounds) 구하기
         foreach (Vector2Int pos in roomPositions)
         {
             if (pos.x < minRoomX) minRoomX = pos.x;
@@ -123,25 +150,21 @@ public class MapGenerator : MonoBehaviour
             if (pos.y > maxRoomY) maxRoomY = pos.y;
         }
 
-        // 화면 밖 여백 추가
         minRoomX -= 1; maxRoomX += 1;
         minRoomY -= 1; maxRoomY += 1;
 
-        // 타일 좌표계로 변환
         int startTileX = Mathf.RoundToInt(minRoomX * roomWidth - (roomWidth / 2));
         int endTileX = Mathf.RoundToInt(maxRoomX * roomWidth + (roomWidth / 2));
         int startTileY = Mathf.RoundToInt(minRoomY * roomHeight - (roomHeight / 2));
         int endTileY = Mathf.RoundToInt(maxRoomY * roomHeight + (roomHeight / 2));
 
-        // 16개 타일을 4x4 패턴으로 반복 도배하기
         for (int x = startTileX; x <= endTileX; x++)
         {
             for (int y = startTileY; y <= endTileY; y++)
             {
-                int patternX = (x % 4 + 4) % 4; // 0 ~ 3
-                int patternY = (y % 4 + 4) % 4; // 0 ~ 3
+                int patternX = (x % 4 + 4) % 4;
+                int patternY = (y % 4 + 4) % 4;
 
-                // 왼쪽 위부터 오른쪽 아래로 0~15번 인덱스 매칭 공식
                 int tileIndex = (3 - patternY) * 4 + patternX;
 
                 backgroundTilemap.SetTile(new Vector3Int(x, y, 0), backgroundPattern[tileIndex]);
