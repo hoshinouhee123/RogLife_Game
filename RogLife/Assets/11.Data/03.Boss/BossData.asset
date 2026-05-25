@@ -14,9 +14,15 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EnemyData
   enemyName: "\uBCF4\uC2A4"
   enemySprite: {fileID: 21300000, guid: c1942b4904d1d754ea7580af079a1c16, type: 3}
-  maxHealth: 1
+  maxHealth: 10
   moveSpeed: 1
   damage: 1
   hitSound: {fileID: 0}
   deathSound: {fileID: 0}
+  bossDialogues:
+  - speakerName: "\uC774\uC720\uB77C"
+    characterPortrait: {fileID: 21300000, guid: 39918550647d55444bbc71b6cffad1e0, type: 3}
+    sentence: "\uC544\uB2C8 \uBCF4\uC2A4\uC804 \uC65C \uC774\uB530\uAD6C\uB85C \uD574\uB1A8\uB2C8
+      \uC81C\uC791\uC790\uC57C. \uBE68\uB9AC \uC81C\uB300\uB85C \uC644\uC131\uC744
+      \uD574\uB77C\uC774\uAC70\uC0AC."
   sfxMixerGroup: {fileID: 973380146946736083, guid: 4c70c6fcbb7d16746ae68958f86f2bb4, type: 2}

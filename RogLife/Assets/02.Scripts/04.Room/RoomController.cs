@@ -37,6 +37,8 @@ public class RoomController : MonoBehaviour
     // ★ [추가됨] 이 방을 플레이어가 직접 밟았는지(가봤는지) 기억하는 변수
     public bool isVisited = false;
 
+    private EnemyData myBossData; // 내 방에 소환된 보스 정보
+
     public List<Enemy> enemiesInRoom = new List<Enemy>();
 
     public void SetupDoors(RoomController t, RoomController b, RoomController l, RoomController r)
@@ -117,6 +119,7 @@ public class RoomController : MonoBehaviour
         doorRight.SetActive(hasR); blockRight.SetActive(!hasR);
     }
 
+    // 플레이어 입장 시 컷신 코루틴 부르기
     private void OnTriggerEnter2D(Collider2D collision)
     {
         if (collision.CompareTag("Player"))
@@ -129,9 +132,15 @@ public class RoomController : MonoBehaviour
                 if (enemiesInRoom.Count > 0)
                 {
                     LockDoors();
-                    foreach (Enemy enemy in enemiesInRoom)
+
+                    // 보스방이면 컷신 시작, 일반 방이면 바로 몬스터 깨우기!
+                    if (isBossRoom)
                     {
-                        if (enemy != null) enemy.WakeUp();
+                        StartCoroutine(BossCutsceneRoutine());
+                    }
+                    else
+                    {
+                        foreach (Enemy enemy in enemiesInRoom) { if (enemy != null) enemy.WakeUp(); }
                     }
                 }
                 else { isCleared = true; }
@@ -170,15 +179,16 @@ public class RoomController : MonoBehaviour
         }
     }
 
-    // MapGenerator가 이 방을 보스방으로 임명할 때 호출
-    public void SetAsBossRoom(GameObject itemPrefab, ItemData[] items, GameObject portal)
+    // ★ [1. 수정됨] MapGenerator가 보스 정보를 넘겨주도록 파라미터 추가
+    public void SetAsBossRoom(GameObject itemPrefab, ItemData[] items, GameObject portal, EnemyData bossData)
     {
         isBossRoom = true;
         itemPickupPrefab = itemPrefab;
         possibleItems = items;
         portalPrefab = portal;
+        myBossData = bossData; // 보스 정보 기억하기!
 
-        if (bossRoomMarker != null) bossRoomMarker.SetActive(true); // 빨간 마커 켜기
+        if (bossRoomMarker != null) bossRoomMarker.SetActive(true);
     }
 
     //  보상과 포탈 소환
@@ -197,6 +207,60 @@ public class RoomController : MonoBehaviour
         if (portalPrefab != null)
         {
             Instantiate(portalPrefab, transform.position + new Vector3(0, 1.5f, 0), Quaternion.identity);
+        }
+    }
+
+    // 보스 컷신 연출 코루틴
+    private System.Collections.IEnumerator BossCutsceneRoutine()
+    {
+        // 1. 시간 정지
+        Time.timeScale = 0f;
+
+        // 2. 컷신 UI 켜기 (이미 myBossData를 통해 이름과 일러스트가 자동으로 바뀝니다!)
+        if (BossUIManager.Instance != null)
+        {
+            BossUIManager.Instance.ShowCutscene(myBossData);
+        }
+
+        // 3. 컷신 2.5초 대기
+        yield return new WaitForSecondsRealtime(2.5f);
+
+        // 4. 컷신 UI 끄기
+        if (BossUIManager.Instance != null)
+        {
+            BossUIManager.Instance.HideCutscene();
+        }
+
+        // ==============================================================
+        // 5. ★ 컷신 직후 대화문 출력 로직
+        // ==============================================================
+
+        // 만약 보스 데이터에 적어둔 대화문이 1개라도 있다면?
+        if (myBossData != null && myBossData.bossDialogues != null && myBossData.bossDialogues.Length > 0)
+        {
+            // 작성해두신 콜백 기능을 활용해 "대화가 끝나면 보스를 깨워라" 라고 예약!
+            DialogueManager.instance.onDialogueEndCallback = () =>
+            {
+                WakeUpBossAndStartFight();
+            };
+
+            // 대화 시작! (DialogueManager가 알아서 시간을 0으로 유지하고, 끝나면 1로 돌려줍니다)
+            DialogueManager.instance.StartDialogue(myBossData.bossDialogues);
+        }
+        else
+        {
+            // 대화문이 없는 보스라면 컷신 직후 바로 전투 시작!
+            Time.timeScale = 1f;
+            WakeUpBossAndStartFight();
+        }
+    }
+
+    // 멈춰있던 보스 몬스터 깨우기 (전투 시작 함수)
+    private void WakeUpBossAndStartFight()
+    {
+        foreach (Enemy enemy in enemiesInRoom)
+        {
+            if (enemy != null) enemy.WakeUp();
         }
     }
 }

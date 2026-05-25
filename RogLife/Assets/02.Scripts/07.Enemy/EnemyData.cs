@@ -19,6 +19,11 @@ public class EnemyData : ScriptableObject
     public AudioClip hitSound;    // 맞았을 때 소리
     public AudioClip deathSound;  // 죽을 때  소리
 
+    // 이 몬스터가 보스일 경우 출력될 대화문!
+    // (일반 몬스터일 때는 그냥 비워두면 됩니다)
+    [Header("보스 전용 대화")]
+    public DialogueLine[] bossDialogues;
+
     // 몬스터 효과음용 믹서 그룹
     public AudioMixerGroup sfxMixerGroup;
 }

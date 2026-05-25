@@ -63,13 +63,39 @@ public class MapGenerator : MonoBehaviour
             if (!roomPositions.Contains(newPos)) roomPositions.Add(newPos);
         }
 
-        // 아이템 방 지정 (30%)
-        bool hasItemRoom = Random.Range(0, 100) < 100;
-        Vector2Int itemRoomPos = new Vector2Int(9999, 9999);
-        if (hasItemRoom && roomPositions.Count > 1) itemRoomPos = roomPositions[Random.Range(1, roomPositions.Count)];
+        // ==========================================
+        // ★ 1. 보스방 지정 (시작방에서 가장 먼 방 찾기)
+        // ==========================================
+        Vector2Int bossRoomPos = Vector2Int.zero;
+        int maxDist = -1;
+        foreach (Vector2Int pos in roomPositions)
+        {
+            // 시작점(0,0)으로부터 X칸수 + Y칸수 = 실제 이동 거리
+            int dist = Mathf.Abs(pos.x) + Mathf.Abs(pos.y);
+            if (dist > maxDist && pos != Vector2Int.zero)
+            {
+                maxDist = dist;
+                bossRoomPos = pos;
+            }
+        }
 
-        // [추가됨] 가장 마지막에 생성된 방을 무조건 '보스방'으로 지정
-        Vector2Int bossRoomPos = roomPositions[roomPositions.Count - 1];
+        // ==========================================
+        // ★ 2. 아이템 방 지정 (보스방, 시작방 제외하고 랜덤)
+        // ==========================================
+        bool hasItemRoom = Random.Range(0, 100) < 100; // 30% 확률
+        Vector2Int itemRoomPos = new Vector2Int(9999, 9999);
+
+        if (hasItemRoom && roomPositions.Count > 2)
+        {
+            List<Vector2Int> possibleItemRooms = new List<Vector2Int>(roomPositions);
+            possibleItemRooms.Remove(Vector2Int.zero); // 시작방 제외
+            possibleItemRooms.Remove(bossRoomPos);     // 보스방 제외
+
+            if (possibleItemRooms.Count > 0)
+            {
+                itemRoomPos = possibleItemRooms[Random.Range(0, possibleItemRooms.Count)];
+            }
+        }
 
         // (혹시 아이템방이랑 겹치면 아이템방 위치를 변경)
         if (bossRoomPos == itemRoomPos) itemRoomPos = roomPositions[1];
@@ -98,19 +124,19 @@ public class MapGenerator : MonoBehaviour
             // 2. [추가됨] 보스방 소환
             else if (pos == bossRoomPos)
             {
-                // 이 방은 보스방이라고 알려주며 보상 프리팹들을 넘겨줌
-                controller.SetAsBossRoom(itemPickupPrefab, possibleItems, nextStagePortalPrefab);
+                EnemyData randomBoss = null;
+                if (possibleBosses.Length > 0)
+                    randomBoss = possibleBosses[Random.Range(0, possibleBosses.Length)];
 
-                if (enemyPrefab != null && possibleBosses.Length > 0)
+                // [수정됨] 방 스크립트에 '어떤 보스 데이터'가 나오는지 함께 넘겨줍니다!
+                controller.SetAsBossRoom(itemPickupPrefab, possibleItems, nextStagePortalPrefab, randomBoss);
+
+                if (enemyPrefab != null && randomBoss != null)
                 {
                     GameObject spawnedBoss = Instantiate(enemyPrefab, worldPos, Quaternion.identity);
                     Enemy bossScript = spawnedBoss.GetComponent<Enemy>();
-                    EnemyData randomBoss = possibleBosses[Random.Range(0, possibleBosses.Length)];
                     bossScript.Setup(randomBoss);
-
-                    // (보너스) 보스니까 크기를 2배로 키워줌!
-                    spawnedBoss.transform.localScale = new Vector3(2f, 2f, 1f);
-
+                    spawnedBoss.transform.localScale = new Vector3(2f, 2f, 1f); // 2배 크기
                     controller.enemiesInRoom.Add(bossScript);
                 }
             }
