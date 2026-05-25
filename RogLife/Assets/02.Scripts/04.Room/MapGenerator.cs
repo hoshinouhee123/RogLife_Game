@@ -128,7 +128,7 @@ public class MapGenerator : MonoBehaviour
                 if (possibleBosses.Length > 0)
                     randomBoss = possibleBosses[Random.Range(0, possibleBosses.Length)];
 
-                // [수정됨] 방 스크립트에 '어떤 보스 데이터'가 나오는지 함께 넘겨줍니다!
+                // 321[수정됨] 방 스크립트에 '어떤 보스 데이터'가 나오는지 함께 넘겨줍니다!
                 controller.SetAsBossRoom(itemPickupPrefab, possibleItems, nextStagePortalPrefab, randomBoss);
 
                 if (enemyPrefab != null && randomBoss != null)

@@ -198,6 +198,12 @@ public class RoomController : MonoBehaviour
     //  보상과 포탈 소환
     private void SpawnBossRewards()
     {
+        // 보스를 잡았으니 승리 BGM으로 변경!
+        if (BGMManager.Instance != null)
+        {
+            BGMManager.Instance.PlayClearBGM();
+        }
+
         // 1. 방 정중앙에 아이템 소환
         if (itemPickupPrefab != null && possibleItems.Length > 0)
         {
@@ -219,6 +225,12 @@ public class RoomController : MonoBehaviour
     {
         // 1. 시간 정지
         Time.timeScale = 0f;
+
+        // 보스 BGM으로 음악 체인지!
+        if (BGMManager.Instance != null && myBossData != null)
+        {
+            BGMManager.Instance.PlayBossBGM(myBossData.bossBgm);
+        }
 
         // 2. ★ [핵심 수정] BossUIManager의 역동적인 컷신 코루틴이 완전히 끝날 때까지 기다림!
         if (BossUIManager.Instance != null)

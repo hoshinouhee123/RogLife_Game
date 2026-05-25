@@ -24,6 +24,10 @@ public class EnemyData : ScriptableObject
     [Header("보스 전용 대화")]
     public DialogueLine[] bossDialogues;
 
+    // [새로 추가된 부분] 보스전 전용 BGM!
+    [Header("보스 BGM (일반 몹은 비워두세요)")]
+    public AudioClip bossBgm;
+
     // 몬스터 효과음용 믹서 그룹
     public AudioMixerGroup sfxMixerGroup;
 }
