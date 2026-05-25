@@ -126,21 +126,25 @@ public class RoomController : MonoBehaviour
         {
             VisitRoom();
 
-            if (!isCleared)
+            // [중요] !isPlayerInRoom 을 추가해서 문에 부비적거려도 딱 1번만 실행되게 막음!
+            if (!isCleared && !isPlayerInRoom)
             {
                 isPlayerInRoom = true;
+
                 if (enemiesInRoom.Count > 0)
                 {
                     LockDoors();
 
-                    // 보스방이면 컷신 시작, 일반 방이면 바로 몬스터 깨우기!
                     if (isBossRoom)
                     {
                         StartCoroutine(BossCutsceneRoutine());
                     }
                     else
                     {
-                        foreach (Enemy enemy in enemiesInRoom) { if (enemy != null) enemy.WakeUp(); }
+                        foreach (Enemy enemy in enemiesInRoom)
+                        {
+                            if (enemy != null) enemy.WakeUp();
+                        }
                     }
                 }
                 else { isCleared = true; }
@@ -216,40 +220,23 @@ public class RoomController : MonoBehaviour
         // 1. 시간 정지
         Time.timeScale = 0f;
 
-        // 2. 컷신 UI 켜기 (이미 myBossData를 통해 이름과 일러스트가 자동으로 바뀝니다!)
+        // 2. ★ [핵심 수정] BossUIManager의 역동적인 컷신 코루틴이 완전히 끝날 때까지 기다림!
         if (BossUIManager.Instance != null)
         {
-            BossUIManager.Instance.ShowCutscene(myBossData);
+            yield return StartCoroutine(BossUIManager.Instance.ShowCutsceneRoutine(myBossData));
         }
 
-        // 3. 컷신 2.5초 대기
-        yield return new WaitForSecondsRealtime(2.5f);
-
-        // 4. 컷신 UI 끄기
-        if (BossUIManager.Instance != null)
-        {
-            BossUIManager.Instance.HideCutscene();
-        }
-
-        // ==============================================================
-        // 5. ★ 컷신 직후 대화문 출력 로직
-        // ==============================================================
-
-        // 만약 보스 데이터에 적어둔 대화문이 1개라도 있다면?
+        // 3. 컷신 직후 대화문 출력 로직
         if (myBossData != null && myBossData.bossDialogues != null && myBossData.bossDialogues.Length > 0)
         {
-            // 작성해두신 콜백 기능을 활용해 "대화가 끝나면 보스를 깨워라" 라고 예약!
             DialogueManager.instance.onDialogueEndCallback = () =>
             {
                 WakeUpBossAndStartFight();
             };
-
-            // 대화 시작! (DialogueManager가 알아서 시간을 0으로 유지하고, 끝나면 1로 돌려줍니다)
             DialogueManager.instance.StartDialogue(myBossData.bossDialogues);
         }
         else
         {
-            // 대화문이 없는 보스라면 컷신 직후 바로 전투 시작!
             Time.timeScale = 1f;
             WakeUpBossAndStartFight();
         }
