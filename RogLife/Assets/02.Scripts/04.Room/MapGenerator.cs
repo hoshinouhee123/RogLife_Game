@@ -4,6 +4,9 @@ using UnityEngine.Tilemaps;
 
 public class MapGenerator : MonoBehaviour
 {
+
+    public static MapGenerator Instance;
+
     [Header("맵 생성 설정")]
     public GameObject roomPrefab;
     public int maxRooms = 15;
@@ -25,7 +28,18 @@ public class MapGenerator : MonoBehaviour
     public GameObject itemPickupPrefab;
     public ItemData[] possibleItems;
 
+    // 보스방 설정
+    [Header("보스방 설정")]
+    public EnemyData[] possibleBosses;       // 보스용 몬스터 데이터 
+    public GameObject nextStagePortalPrefab; // 아까 만든 NextStagePortal 프리팹
+
     private Dictionary<Vector2Int, GameObject> spawnedRooms = new Dictionary<Vector2Int, GameObject>();
+
+    private void Awake()
+    {
+        if (Instance == null) Instance = this;
+    }
+
 
     void Start()
     {
@@ -37,7 +51,6 @@ public class MapGenerator : MonoBehaviour
         List<Vector2Int> roomPositions = new List<Vector2Int>();
         roomPositions.Add(Vector2Int.zero);
 
-        // 1. 방 좌표 랜덤 생성
         while (roomPositions.Count < maxRooms)
         {
             Vector2Int currentPos = roomPositions[Random.Range(0, roomPositions.Count)];
@@ -47,25 +60,20 @@ public class MapGenerator : MonoBehaviour
             else if (randomDir == 1) newPos += Vector2Int.down;
             else if (randomDir == 2) newPos += Vector2Int.left;
             else if (randomDir == 3) newPos += Vector2Int.right;
-
             if (!roomPositions.Contains(newPos)) roomPositions.Add(newPos);
         }
 
-        // ==========================================
-        // ★ [추가된 로직] 아이템 방 좌표 지정 (30% 확률)
-        // ==========================================
-        bool hasItemRoom = Random.Range(0, 100) < 100; // 30% 확률로 아이템 방 등장
-        Vector2Int itemRoomPos = new Vector2Int(9999, 9999); // 일단 절대 안 나올 좌표로 초기화
+        // 아이템 방 지정 (30%)
+        bool hasItemRoom = Random.Range(0, 100) < 100;
+        Vector2Int itemRoomPos = new Vector2Int(9999, 9999);
+        if (hasItemRoom && roomPositions.Count > 1) itemRoomPos = roomPositions[Random.Range(1, roomPositions.Count)];
 
-        // 방이 2개 이상이고 당첨되었다면, 시작방(0,0)을 제외한 방 중 하나를 아이템 방으로 지정
-        if (hasItemRoom && roomPositions.Count > 1)
-        {
-            int randomIndex = Random.Range(1, roomPositions.Count);
-            itemRoomPos = roomPositions[randomIndex];
-        }
-        // ==========================================
+        // [추가됨] 가장 마지막에 생성된 방을 무조건 '보스방'으로 지정
+        Vector2Int bossRoomPos = roomPositions[roomPositions.Count - 1];
 
-        // 2. 방 생성 및 몬스터/아이템 소환
+        // (혹시 아이템방이랑 겹치면 아이템방 위치를 변경)
+        if (bossRoomPos == itemRoomPos) itemRoomPos = roomPositions[1];
+
         foreach (Vector2Int pos in roomPositions)
         {
             Vector3 worldPos = new Vector3(pos.x * roomWidth, pos.y * roomHeight, 0);
@@ -75,27 +83,38 @@ public class MapGenerator : MonoBehaviour
 
             RoomController controller = newRoom.GetComponent<RoomController>();
 
-            // ==========================================
-            // ★ [수정된 로직] 아이템 방인지 몬스터 방인지 구분해서 소환
-            // ==========================================
-
-            // 케이스 A: 이 방이 방금 지정된 '아이템 방'이라면?
+            // 1. 아이템 방 소환
             if (pos == itemRoomPos)
             {
-
-                // 이 방의 미니맵에 '황금방 마커'를 띄우라고 명령!
                 controller.SetAsItemRoom();
-
-                // 몬스터는 안 낳고 정중앙에 아이템만 딱 1개 소환!
                 if (itemPickupPrefab != null && possibleItems.Length > 0)
                 {
                     GameObject spawnedItem = Instantiate(itemPickupPrefab, worldPos, Quaternion.identity);
-
+                    ItemPickup pickupScript = spawnedItem.GetComponent<ItemPickup>();
                     ItemData randomItemData = possibleItems[Random.Range(0, possibleItems.Length)];
-                    spawnedItem.GetComponent<ItemPickup>().Setup(randomItemData);
+                    if (pickupScript != null && randomItemData != null) pickupScript.Setup(randomItemData);
                 }
             }
-            // 케이스 B: 아이템 방도 아니고, 시작 방(0,0)도 아니라면? -> 평소처럼 몬스터 소환
+            // 2. [추가됨] 보스방 소환
+            else if (pos == bossRoomPos)
+            {
+                // 이 방은 보스방이라고 알려주며 보상 프리팹들을 넘겨줌
+                controller.SetAsBossRoom(itemPickupPrefab, possibleItems, nextStagePortalPrefab);
+
+                if (enemyPrefab != null && possibleBosses.Length > 0)
+                {
+                    GameObject spawnedBoss = Instantiate(enemyPrefab, worldPos, Quaternion.identity);
+                    Enemy bossScript = spawnedBoss.GetComponent<Enemy>();
+                    EnemyData randomBoss = possibleBosses[Random.Range(0, possibleBosses.Length)];
+                    bossScript.Setup(randomBoss);
+
+                    // (보너스) 보스니까 크기를 2배로 키워줌!
+                    spawnedBoss.transform.localScale = new Vector3(2f, 2f, 1f);
+
+                    controller.enemiesInRoom.Add(bossScript);
+                }
+            }
+            // 3. 일반 몬스터 소환
             else if (pos != Vector2Int.zero && enemyPrefab != null && possibleEnemies.Length > 0)
             {
                 int enemyCount = Random.Range(1, 4);
@@ -103,40 +122,68 @@ public class MapGenerator : MonoBehaviour
                 {
                     Vector3 randomOffset = new Vector3(Random.Range(-4f, 4f), Random.Range(-0.5f, 0.5f), 0);
                     GameObject spawnedEnemy = Instantiate(enemyPrefab, worldPos + randomOffset, Quaternion.identity);
-
                     Enemy enemyScript = spawnedEnemy.GetComponent<Enemy>();
                     EnemyData randomData = possibleEnemies[Random.Range(0, possibleEnemies.Length)];
                     enemyScript.Setup(randomData);
-
                     controller.enemiesInRoom.Add(enemyScript);
                 }
             }
         }
 
-        // 3. 문 열고 닫기 및 이웃 방 연결 세팅
+        // 문 연결 처리
         foreach (var kvp in spawnedRooms)
         {
             Vector2Int pos = kvp.Key;
             RoomController controller = kvp.Value.GetComponent<RoomController>();
-
             RoomController top = spawnedRooms.ContainsKey(pos + Vector2Int.up) ? spawnedRooms[pos + Vector2Int.up].GetComponent<RoomController>() : null;
             RoomController bottom = spawnedRooms.ContainsKey(pos + Vector2Int.down) ? spawnedRooms[pos + Vector2Int.down].GetComponent<RoomController>() : null;
             RoomController left = spawnedRooms.ContainsKey(pos + Vector2Int.left) ? spawnedRooms[pos + Vector2Int.left].GetComponent<RoomController>() : null;
             RoomController right = spawnedRooms.ContainsKey(pos + Vector2Int.right) ? spawnedRooms[pos + Vector2Int.right].GetComponent<RoomController>() : null;
-
-            if (controller != null)
-            {
-                controller.SetupDoors(top, bottom, left, right);
-            }
+            if (controller != null) controller.SetupDoors(top, bottom, left, right);
         }
 
-        // 4. 맵 생성이 다 끝나면, 시작 방(0,0)에 강제로 "방문 완료" 처리를 해서 불을 밝혀줍니다!
-        if (spawnedRooms.ContainsKey(Vector2Int.zero))
-        {
-            spawnedRooms[Vector2Int.zero].GetComponent<RoomController>().VisitRoom();
-        }
+        if (spawnedRooms.ContainsKey(Vector2Int.zero)) spawnedRooms[Vector2Int.zero].GetComponent<RoomController>().VisitRoom();
 
         GenerateBackground(roomPositions);
+    }
+
+    //  포탈을 탔을 때 맵을 싹 지우고 새로 짜는 함수!
+    public void GoToNextStage()
+    {
+        // 1. 기존 방들 삭제
+        foreach (var room in spawnedRooms.Values)
+        {
+            if (room != null) Destroy(room);
+        }
+        spawnedRooms.Clear();
+
+        // 2. 맵에 남아있는 모든 아이템 싹쓸이 (태그 대신 스크립트로 찾음!)
+        ItemPickup[] items = FindObjectsOfType<ItemPickup>();
+        foreach (var item in items) Destroy(item.gameObject);
+
+        // 3. 맵에 남아있는 포탈 싹쓸이
+        NextStagePortal[] portals = FindObjectsOfType<NextStagePortal>();
+        foreach (var portal in portals) Destroy(portal.gameObject);
+
+        // 4. 혹시나 남아있을 몬스터, 총알도 싹쓸이
+        Enemy[] enemies = FindObjectsOfType<Enemy>();
+        foreach (var enemy in enemies) Destroy(enemy.gameObject);
+
+        Bullet[] bullets = FindObjectsOfType<Bullet>();
+        foreach (var bullet in bullets) Destroy(bullet.gameObject);
+
+        // 5. 배경 타일맵 지우기
+        if (backgroundTilemap != null) backgroundTilemap.ClearAllTiles();
+
+        // 6. 플레이어 위치를 시작방(0,0)으로 즉시 되돌리기
+        GameObject player = GameObject.FindGameObjectWithTag("Player");
+        if (player != null) player.transform.position = Vector3.zero;
+
+        // 7. RoomManager 카메라 및 좌표 초기화
+        if (RoomManager.Instance != null) RoomManager.Instance.ResetRoomCoordinates();
+
+        // 8. 드디어 새 맵 생성!
+        GenerateMap();
     }
 
     void GenerateBackground(List<Vector2Int> roomPositions)

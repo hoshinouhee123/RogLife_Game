@@ -103,4 +103,13 @@ public class RoomManager : MonoBehaviour
 
         isTransitioning = false;
     }
+
+    public void ResetRoomCoordinates()
+    {
+        currentRoomX = 0;
+        currentRoomY = 0;
+
+        // 카메라 위치도 즉시 시작 방(0,0)으로 이동
+        mainCamera.transform.position = new Vector3(0, 0, mainCamera.transform.position.z);
+    }
 }

@@ -26,6 +26,14 @@ public class RoomController : MonoBehaviour
     private bool isCleared = false;
     private bool isPlayerInRoom = false;
 
+    [Header("보스방 설정")]
+    public GameObject bossRoomMarker; // 미니맵 보스방 마커 (빨간색)
+
+    private bool isBossRoom = false;
+    private GameObject itemPickupPrefab;
+    private ItemData[] possibleItems;
+    private GameObject portalPrefab;
+
     // ★ [추가됨] 이 방을 플레이어가 직접 밟았는지(가봤는지) 기억하는 변수
     public bool isVisited = false;
 
@@ -131,6 +139,7 @@ public class RoomController : MonoBehaviour
         }
     }
 
+    // 보스가 죽었을 때 보상 소환 로직 추가!
     private void Update()
     {
         if (isPlayerInRoom && !isCleared)
@@ -140,9 +149,16 @@ public class RoomController : MonoBehaviour
             {
                 isCleared = true;
                 UnlockDoors();
+
+                // 적이 다 죽었는데 만약 이 방이 보스방이라면? 보상 소환!
+                if (isBossRoom)
+                {
+                    SpawnBossRewards();
+                }
             }
         }
     }
+
 
     // MapGenerator가 "너 황금방 해라!" 라고 명령할 때 부를 함수
     public void SetAsItemRoom()
@@ -151,6 +167,36 @@ public class RoomController : MonoBehaviour
         if (itemRoomMarker != null)
         {
             itemRoomMarker.SetActive(true);
+        }
+    }
+
+    // MapGenerator가 이 방을 보스방으로 임명할 때 호출
+    public void SetAsBossRoom(GameObject itemPrefab, ItemData[] items, GameObject portal)
+    {
+        isBossRoom = true;
+        itemPickupPrefab = itemPrefab;
+        possibleItems = items;
+        portalPrefab = portal;
+
+        if (bossRoomMarker != null) bossRoomMarker.SetActive(true); // 빨간 마커 켜기
+    }
+
+    //  보상과 포탈 소환
+    private void SpawnBossRewards()
+    {
+        // 1. 방 정중앙에 아이템 소환
+        if (itemPickupPrefab != null && possibleItems.Length > 0)
+        {
+            GameObject spawnedItem = Instantiate(itemPickupPrefab, transform.position, Quaternion.identity);
+            ItemPickup pickupScript = spawnedItem.GetComponent<ItemPickup>();
+            ItemData randomItemData = possibleItems[Random.Range(0, possibleItems.Length)];
+            if (pickupScript != null && randomItemData != null) pickupScript.Setup(randomItemData);
+        }
+
+        // 2. 방 위쪽(중앙에서 살짝 위)에 다음 스테이지 포탈 소환
+        if (portalPrefab != null)
+        {
+            Instantiate(portalPrefab, transform.position + new Vector3(0, 1.5f, 0), Quaternion.identity);
         }
     }
 }
