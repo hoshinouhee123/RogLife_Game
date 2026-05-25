@@ -38,6 +38,8 @@ public class Player : MonoBehaviour
     // [여기에 아이템 획득 효과음 변수 추가!]
     public AudioClip itemGetSound;
 
+    private bool isDead = false;
+
     private AudioSource audioSource;
     private PlayerController playerController;
     private SpriteRenderer sr;
@@ -94,18 +96,27 @@ public class Player : MonoBehaviour
     }
 
     // 적에게 맞았을 때 호출되는 함수
+    // ★ [수정됨] 데미지 받는 함수
     public void TakeDamage(int damage)
     {
-        if (isInvincible) return;
+        // 무적 상태이거나, 이미 죽었으면 데미지 무시!! (버그 완벽 차단)
+        if (isInvincible || isDead) return;
 
         currentHealth -= damage;
         UpdateHealthUI();
 
-        // 맞았을 때 플레이어 비명 소리 재생
+        // 맞았을 때 소리
         if (getHitSound != null) audioSource.PlayOneShot(getHitSound);
 
-        if (currentHealth <= 0) Die();
-        else StartCoroutine(InvincibilityRoutine());
+        if (currentHealth <= 0)
+        {
+            isDead = true; // ★ 이제 난 죽었다고 도장 쾅! (이후 데미지 무시)
+            Die();
+        }
+        else
+        {
+            StartCoroutine(InvincibilityRoutine());
+        }
     }
 
     // 하트 UI 업데이트 로직
@@ -154,9 +165,21 @@ public class Player : MonoBehaviour
 
     void Die()
     {
-        Debug.Log("게임 오버!");
-        // 여기서 게임 오버 UI를 띄우거나 씬을 재시작합니다.
-        gameObject.SetActive(false);
+        Debug.Log("플레이어 사망!");
+
+        // 조작을 불가능하게 막음
+        if (playerController != null) playerController.enabled = false;
+
+        // 게임 오버 연출 시작!
+        if (GameOverManager.Instance != null)
+        {
+            GameOverManager.Instance.StartGameOverSequence();
+        }
+        else
+        {
+            // 매니저가 없을 경우의 대비책
+            gameObject.SetActive(false);
+        }
     }
 
     public void AcquireItem(ItemData item)

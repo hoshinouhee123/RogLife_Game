@@ -47,10 +47,7 @@ public class PlayerController : MonoBehaviour
             frameIndex = 0;
             sr.sprite = currentSprites[0];
 
-            if (Input.GetKeyDown(KeyCode.E) || Input.GetKeyDown(KeyCode.Space))
-            {
-                DialogueManager.instance.DisplayNextSentence();
-            }
+            
             return;
         }
 

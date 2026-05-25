@@ -13,6 +13,9 @@ public class BGMManager : MonoBehaviour
     public AudioClip stageBgm;      // 평상시 던전 BGM
     public AudioClip bossClearBgm;  // 보스 잡았을 때 나오는 승리 BGM
 
+    [Header("엔딩 BGM")]
+    public AudioClip badEndingBgm;
+
     private void Awake()
     {
         if (Instance == null) Instance = this;
@@ -54,6 +57,15 @@ public class BGMManager : MonoBehaviour
         if (audioSource == null || bossClearBgm == null) return;
         audioSource.clip = bossClearBgm;
         audioSource.loop = false; // 클리어 브금은 보통 1번만 재생됨
+        audioSource.Play();
+    }
+
+    // [BGMManager.cs 맨 아래에 함수 추가]
+    public void PlayBadEndingBGM()
+    {
+        if (audioSource == null || badEndingBgm == null) return;
+        audioSource.clip = badEndingBgm;
+        audioSource.loop = false; // 크레딧 길이에 맞추거나 true로 반복
         audioSource.Play();
     }
 }

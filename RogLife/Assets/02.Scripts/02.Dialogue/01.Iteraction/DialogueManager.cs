@@ -152,4 +152,16 @@ public class DialogueManager : MonoBehaviour
         Time.timeScale = 1f;
     }
 
+    // ★ [새로 추가됨] 대화 매니저가 직접 스페이스바를 감지합니다!
+    private void Update()
+    {
+        // 대화창이 켜져 있을 때만 작동
+        if (isDialogueActive)
+        {
+            if (Input.GetKeyDown(KeyCode.E) || Input.GetKeyDown(KeyCode.Space))
+            {
+                DisplayNextSentence();
+            }
+        }
+    }
 }
