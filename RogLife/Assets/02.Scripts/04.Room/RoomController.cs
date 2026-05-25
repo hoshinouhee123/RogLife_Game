@@ -29,7 +29,7 @@ public class RoomController : MonoBehaviour
     [Header("보스방 설정")]
     public GameObject bossRoomMarker; // 미니맵 보스방 마커 (빨간색)
 
-    private bool isBossRoom = false;
+    public bool isBossRoom = false;
     private GameObject itemPickupPrefab;
     private ItemData[] possibleItems;
     private GameObject portalPrefab;
@@ -153,6 +153,7 @@ public class RoomController : MonoBehaviour
     }
 
     // 보스가 죽었을 때 보상 소환 로직 추가!
+    // ★ 보스가 다 죽었을 때
     private void Update()
     {
         if (isPlayerInRoom && !isCleared)
@@ -163,9 +164,11 @@ public class RoomController : MonoBehaviour
                 isCleared = true;
                 UnlockDoors();
 
-                // 적이 다 죽었는데 만약 이 방이 보스방이라면? 보상 소환!
                 if (isBossRoom)
                 {
+                    // 보스가 싹 다 죽으면 HP바 숨기기!
+                    if (BossUIManager.Instance != null) BossUIManager.Instance.HideHPBar();
+
                     SpawnBossRewards();
                 }
             }
@@ -257,6 +260,12 @@ public class RoomController : MonoBehaviour
     // 멈춰있던 보스 몬스터 깨우기 (전투 시작 함수)
     private void WakeUpBossAndStartFight()
     {
+        // 컷신, 대화가 다 끝나고 드디어 보스가 깨어날 때 HP바 등장!
+        if (isBossRoom && BossUIManager.Instance != null)
+        {
+            BossUIManager.Instance.ShowHPBar();
+        }
+
         foreach (Enemy enemy in enemiesInRoom)
         {
             if (enemy != null) enemy.WakeUp();

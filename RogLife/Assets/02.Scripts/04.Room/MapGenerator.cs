@@ -137,6 +137,10 @@ public class MapGenerator : MonoBehaviour
                     Enemy bossScript = spawnedBoss.GetComponent<Enemy>();
                     bossScript.Setup(randomBoss);
                     spawnedBoss.transform.localScale = new Vector3(2f, 2f, 1f); // 2배 크기
+
+                    // ★ [이거 추가!] 보스에게도 알려줌
+                    bossScript.currentRoom = controller;
+
                     controller.enemiesInRoom.Add(bossScript);
                 }
             }
@@ -151,6 +155,10 @@ public class MapGenerator : MonoBehaviour
                     Enemy enemyScript = spawnedEnemy.GetComponent<Enemy>();
                     EnemyData randomData = possibleEnemies[Random.Range(0, possibleEnemies.Length)];
                     enemyScript.Setup(randomData);
+
+                    // ★ [이거 추가!] 내가 태어난 방을 적에게 알려줌
+                    enemyScript.currentRoom = controller;
+
                     controller.enemiesInRoom.Add(enemyScript);
                 }
             }

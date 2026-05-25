@@ -30,4 +30,11 @@ public class EnemyData : ScriptableObject
 
     // 몬스터 효과음용 믹서 그룹
     public AudioMixerGroup sfxMixerGroup;
+
+    [Header("보스 특수 기믹 (분열 & 대쉬)")]
+    public bool isDashSplittingBoss = false; // 체크하면 대쉬/분열 보스가 됨!
+    public float dashSpeedMultiplier = 4f;   // 평소 속도보다 대쉬할 때 몇 배 빠른가?
+    public float dashPrepTime = 1.0f;        // 대쉬하기 전 기 모으는 시간 (초)
+    public float stunTime = 2.0f;            // 벽에 부딪혔을 때 기절하는 시간 (초)
+    public float wallCrashDamage = 5f;       // 벽에 박았을 때 입는 자해 데미지
 }

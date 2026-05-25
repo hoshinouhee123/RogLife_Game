@@ -12,9 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6714644bc46b2bb44aa50210c9699579, type: 3}
   m_Name: BossData
   m_EditorClassIdentifier: Assembly-CSharp::EnemyData
-  enemyName: "\uBCF4\uC2A4"
-  enemySprite: {fileID: 21300000, guid: c1942b4904d1d754ea7580af079a1c16, type: 3}
-  maxHealth: 10
+  enemyName: "\uD0C0\uC774\uC5B4\uD53C"
+  enemySprite: {fileID: 21300000, guid: b369e3d7b0f95d54995c6379644b4c3c, type: 3}
+  maxHealth: 100
   moveSpeed: 1
   damage: 1
   hitSound: {fileID: 0}
@@ -27,3 +27,8 @@ MonoBehaviour:
       \uD574\uB77C\uC774\uAC70\uC0AC."
   bossBgm: {fileID: 8300000, guid: 0d22814162cab6346a86c04f3f08e752, type: 3}
   sfxMixerGroup: {fileID: 973380146946736083, guid: 4c70c6fcbb7d16746ae68958f86f2bb4, type: 2}
+  isDashSplittingBoss: 1
+  dashSpeedMultiplier: 7
+  dashPrepTime: 1
+  stunTime: 2
+  wallCrashDamage: 10
