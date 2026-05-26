@@ -2182,6 +2182,7 @@ MonoBehaviour:
   itemPickupPrefab: {fileID: 6912843631359446751, guid: e10ee81bf7e6b1c43bfe1edc331c83fe, type: 3}
   possibleItems:
   - {fileID: 11400000, guid: f4983ee118688044f974ad351f3eeb7d, type: 2}
+  - {fileID: 11400000, guid: e32453b1797b0ee4d948505ea4ff1ad9, type: 2}
   possibleBosses:
   - {fileID: 11400000, guid: 82876b319c69e984294a0bf90883686a, type: 2}
   nextStagePortalPrefab: {fileID: 326277001260853878, guid: 6fd4b15f525815e4b974d5b36a1895c6, type: 3}

@@ -12,4 +12,7 @@ public class ItemData : ScriptableObject
     [Header("올려줄 스탯")]
     public float addDamage;            // 올라갈 공격력 (예: 1)
     public int addMaxHealth;           // 늘어날 최대 체력 (예: 1)
+
+    // ★ [새로 추가된 부분] 올려줄 이동 속도! (예: 1, 2)
+    public float addMoveSpeed;
 }

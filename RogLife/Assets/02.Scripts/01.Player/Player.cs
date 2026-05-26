@@ -195,6 +195,14 @@ public class Player : MonoBehaviour
             UpdateHealthUI(); // 늘어난 하트 UI 새로고침
         }
 
+        // 3. ★ [새로 추가된 부분] 이동 속도 증가!
+        if (item.addMoveSpeed > 0 && playerController != null)
+        {
+            playerController.moveSpeed += item.addMoveSpeed;
+            // (선택) 스피드가 너무 빨라지는 걸 막고 싶다면 최대치 제한을 걸 수도 있습니다.
+            // if (playerController.moveSpeed > 10f) playerController.moveSpeed = 10f;
+        }
+
         // [2. 여기에 효과음 재생 코드 한 줄 추가!]
         if (itemGetSound != null)
         {

@@ -22,9 +22,8 @@ MonoBehaviour:
   bossDialogues:
   - speakerName: "\uC774\uC720\uB77C"
     characterPortrait: {fileID: 21300000, guid: 39918550647d55444bbc71b6cffad1e0, type: 3}
-    sentence: "\uC544\uB2C8 \uBCF4\uC2A4\uC804 \uC65C \uC774\uB530\uAD6C\uB85C \uD574\uB1A8\uB2C8
-      \uC81C\uC791\uC790\uC57C. \uBE68\uB9AC \uC81C\uB300\uB85C \uC644\uC131\uC744
-      \uD574\uB77C\uC774\uAC70\uC0AC."
+    sentence: "\uB2E4\uB978 \uB208\uAE54 \uB2EC\uB9B0 \uD0C0\uC774\uC5B4\uB4E4\uBCF4\uB2E4
+      \uC880 \uB354 \uD070 \uAC1C\uCCB4 \uAC19\uC544.\n\uC870\uC2EC\uD574\uC57C\uACA0\uC5B4."
   bossBgm: {fileID: 8300000, guid: 0d22814162cab6346a86c04f3f08e752, type: 3}
   sfxMixerGroup: {fileID: 973380146946736083, guid: 4c70c6fcbb7d16746ae68958f86f2bb4, type: 2}
   isDashSplittingBoss: 1
