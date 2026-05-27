@@ -57,6 +57,9 @@ public class Player : MonoBehaviour
         sr = GetComponent<SpriteRenderer>();
         playerController = GetComponent<PlayerController>();
 
+        //테스트용 시작 코인 추가 코드
+        coinCount += 99;
+
         // 내 몸에 오디오 소스가 없으면 자동으로 하나 달아줌
         audioSource = GetComponent<AudioSource>();
         if (audioSource == null) audioSource = gameObject.AddComponent<AudioSource>();

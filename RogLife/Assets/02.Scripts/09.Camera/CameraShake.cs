@@ -5,6 +5,10 @@ public class CameraShake : MonoBehaviour
 {
     public static CameraShake Instance;
 
+    // ★ [추가됨] 현재 흔들리는 중인지 확인하고 관리할 코루틴 변수
+    private Coroutine shakeCoroutine;
+    private Vector3 originalPos;
+
     private void Awake()
     {
         if (Instance == null) Instance = this;
@@ -12,12 +16,24 @@ public class CameraShake : MonoBehaviour
 
     public void ShakeCamera(float duration, float magnitude)
     {
-        StartCoroutine(ShakeRoutine(duration, magnitude));
+        // ★ [핵심 해결 코드] 이미 흔들리고 있는 중이라면?
+        if (shakeCoroutine != null)
+        {
+            // 흔들림 연출만 초기화하고, 원래 위치(originalPos)는 새로 덮어쓰지 않습니다!
+            StopCoroutine(shakeCoroutine);
+        }
+        else
+        {
+            // 흔들리지 않고 가만히 있을 때만 '현재 위치'를 정답으로 저장합니다!
+            originalPos = transform.position;
+        }
+
+        // 새로운 흔들림 시작
+        shakeCoroutine = StartCoroutine(ShakeRoutine(duration, magnitude));
     }
 
     private IEnumerator ShakeRoutine(float duration, float magnitude)
     {
-        Vector3 originalPos = transform.position;
         float elapsed = 0f;
 
         while (elapsed < duration)
@@ -31,7 +47,10 @@ public class CameraShake : MonoBehaviour
             yield return null;
         }
 
-        // 진동이 끝나면 원래 위치로 정확히 복구
+        // 진동이 끝나면 기억해둔 완벽한 원래 위치로 정확히 복구
         transform.position = originalPos;
+
+        // ★ 흔들림이 완전히 끝났음을 알림 (다음 진동을 위해 비워둠)
+        shakeCoroutine = null;
     }
 }
