@@ -1620,6 +1620,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Leeyura
       objectReference: {fileID: 0}
+    - target: {fileID: 4712325135393211889, guid: 8ada62d262084494186b7287a3a471f3, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 8833551262014650620, guid: 8ada62d262084494186b7287a3a471f3, type: 3}
       propertyPath: m_Constraints
       value: 4
@@ -2266,6 +2270,9 @@ MonoBehaviour:
   possibleBosses:
   - {fileID: 11400000, guid: 82876b319c69e984294a0bf90883686a, type: 2}
   nextStagePortalPrefab: {fileID: 326277001260853878, guid: 6fd4b15f525815e4b974d5b36a1895c6, type: 3}
+  shopItemPrefab: {fileID: 1488427771104201869, guid: a66adbc7d11ae6345a4c28a66129c51b, type: 3}
+  merchantPrefab: {fileID: 9052034271783664804, guid: 5d7828d4395311548a9447064a37f0be, type: 3}
+  shopHealthSprite: {fileID: 21300000, guid: c4a628aec032cff46b6622f136a72b9b, type: 3}
 --- !u!4 &820656832
 Transform:
   m_ObjectHideFlags: 0
@@ -2510,8 +2517,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 225, y: -60}
-  m_SizeDelta: {x: 50, y: 180}
+  m_AnchoredPosition: {x: 207.06573, y: -60}
+  m_SizeDelta: {x: 85.8686, y: 180}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1009452953
 MonoBehaviour:
@@ -2556,7 +2563,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 0.05882353}
+  m_Color: {r: 1, g: 1, b: 1, a: 0.11764706}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1

@@ -220,17 +220,34 @@ public class Player : MonoBehaviour
 
     }
 
-    // ★ [새로 추가됨] 코인을 먹었을 때 실행되는 함수
+    // ★ [수정됨] 코인 획득 시 최대 99개 제한
     public void AddCoin(int amount)
     {
         coinCount += amount;
+        if (coinCount > 99) coinCount = 99; // 99개 제한!
         UpdateCoinUI();
 
-        // 짤랑! 소리 재생 (이미 믹서가 연결된 오디오 소스 사용)
-        if (coinGetSound != null)
+        if (coinGetSound != null) audioSource.PlayOneShot(coinGetSound);
+    }
+
+    // ★ [새로 추가됨] 상점에서 코인을 지불할 때 쓰는 함수
+    public bool SpendCoin(int amount)
+    {
+        if (coinCount >= amount) // 돈이 충분하면?
         {
-            audioSource.PlayOneShot(coinGetSound);
+            coinCount -= amount;
+            UpdateCoinUI();
+            return true; // 결제 성공!
         }
+        return false; // 돈이 부족함!
+    }
+
+    // ★ [새로 추가됨] 상점에서 체력을 샀을 때 회복하는 함수
+    public void Heal(int amount)
+    {
+        currentHealth += amount;
+        if (currentHealth > maxHealth) currentHealth = maxHealth; // 최대치 초과 방지
+        UpdateHealthUI();
     }
 
     // ★ [새로 추가됨] 코인 글씨 업데이트

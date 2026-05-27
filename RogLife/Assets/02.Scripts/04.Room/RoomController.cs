@@ -34,6 +34,9 @@ public class RoomController : MonoBehaviour
     private ItemData[] possibleItems;
     private GameObject portalPrefab;
 
+    [Header("상점방 설정")]
+    public GameObject shopRoomMarker; // 상점방 마커
+
     // ★ [추가됨] 이 방을 플레이어가 직접 밟았는지(가봤는지) 기억하는 변수
     public bool isVisited = false;
 
@@ -270,5 +273,12 @@ public class RoomController : MonoBehaviour
         {
             if (enemy != null) enemy.WakeUp();
         }
+    }
+
+
+    // ★ [함수 추가]
+    public void SetAsShopRoom()
+    {
+        if (shopRoomMarker != null) shopRoomMarker.SetActive(true);
     }
 }

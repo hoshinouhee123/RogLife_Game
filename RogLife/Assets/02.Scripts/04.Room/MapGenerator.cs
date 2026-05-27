@@ -33,6 +33,12 @@ public class MapGenerator : MonoBehaviour
     public EnemyData[] possibleBosses;       // 보스용 몬스터 데이터 
     public GameObject nextStagePortalPrefab; // 아까 만든 NextStagePortal 프리팹
 
+    [Header("상점방 설정")]
+    public GameObject shopItemPrefab;    // 상점 진열대 프리팹 (ShopItem.cs)
+    public GameObject merchantPrefab;    // 상인 NPC 프리팹 (InteractableObject)
+    public Sprite shopHealthSprite;      // 체력 판매용 하트 이미지
+
+
     private Dictionary<Vector2Int, GameObject> spawnedRooms = new Dictionary<Vector2Int, GameObject>();
 
     private void Awake()
@@ -97,6 +103,25 @@ public class MapGenerator : MonoBehaviour
             }
         }
 
+        // ==========================================
+        // ★ 3. 상점방 지정 (보스, 시작, 아이템방 피해서 50% 확률로 등장)
+        // ==========================================
+        bool hasShopRoom = Random.Range(0, 100) < 100; // 50% 확률
+        Vector2Int shopRoomPos = new Vector2Int(9999, 9999);
+
+        if (hasShopRoom && roomPositions.Count > 3)
+        {
+            List<Vector2Int> possibleShopRooms = new List<Vector2Int>(roomPositions);
+            possibleShopRooms.Remove(Vector2Int.zero); // 시작방 제외
+            possibleShopRooms.Remove(bossRoomPos);     // 보스방 제외
+            possibleShopRooms.Remove(itemRoomPos);     // 아이템방 제외
+
+            if (possibleShopRooms.Count > 0)
+            {
+                shopRoomPos = possibleShopRooms[Random.Range(0, possibleShopRooms.Count)];
+            }
+        }
+
         // (혹시 아이템방이랑 겹치면 아이템방 위치를 변경)
         if (bossRoomPos == itemRoomPos) itemRoomPos = roomPositions[1];
 
@@ -119,6 +144,32 @@ public class MapGenerator : MonoBehaviour
                     ItemPickup pickupScript = spawnedItem.GetComponent<ItemPickup>();
                     ItemData randomItemData = possibleItems[Random.Range(0, possibleItems.Length)];
                     if (pickupScript != null && randomItemData != null) pickupScript.Setup(randomItemData);
+                }
+            }
+            // ★ [추가됨] 상점방 소환!
+            else if (pos == shopRoomPos)
+            {
+                controller.SetAsShopRoom();
+
+                // 상인 NPC를 방 위쪽 가운데에 소환
+                if (merchantPrefab != null)
+                {
+                    Instantiate(merchantPrefab, worldPos + new Vector3(0, 2f, 0), Quaternion.identity);
+                }
+
+                if (shopItemPrefab != null)
+                {
+                    // 왼쪽엔 체력 판매대 소환 (15원)
+                    GameObject healthStand = Instantiate(shopItemPrefab, worldPos + new Vector3(-3f, -1f, 0), Quaternion.identity);
+                    healthStand.GetComponent<ShopItem>().SetupHealth(15, shopHealthSprite);
+
+                    // 오른쪽엔 랜덤 아이템 판매대 소환 (15원)
+                    if (possibleItems.Length > 0)
+                    {
+                        GameObject itemStand = Instantiate(shopItemPrefab, worldPos + new Vector3(3f, -1f, 0), Quaternion.identity);
+                        ItemData randomItemData = possibleItems[Random.Range(0, possibleItems.Length)];
+                        itemStand.GetComponent<ShopItem>().SetupItem(randomItemData, 15);
+                    }
                 }
             }
             // 2. [추가됨] 보스방 소환
