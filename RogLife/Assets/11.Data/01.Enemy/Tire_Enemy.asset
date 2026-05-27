@@ -17,6 +17,13 @@ MonoBehaviour:
   maxHealth: 3
   moveSpeed: 1
   damage: 1
-  hitSound: {fileID: 0}
+  hitSound: {fileID: 8300000, guid: 7f79857b28c5749218674d1994791213, type: 3}
   deathSound: {fileID: 0}
+  bossDialogues: []
+  bossBgm: {fileID: 0}
   sfxMixerGroup: {fileID: 973380146946736083, guid: 4c70c6fcbb7d16746ae68958f86f2bb4, type: 2}
+  isDashSplittingBoss: 0
+  dashSpeedMultiplier: 4
+  dashPrepTime: 1
+  stunTime: 2
+  wallCrashDamage: 5

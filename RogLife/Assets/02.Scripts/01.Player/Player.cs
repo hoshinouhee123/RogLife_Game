@@ -1,7 +1,8 @@
 using UnityEngine;
 using UnityEngine.UI; // UI를 다루기 위해 필수
 using System.Collections;
-using UnityEngine.Audio; // 오디오 믹서를 사용하기 위해 필수
+using UnityEngine.Audio;
+using TMPro; // 오디오 믹서를 사용하기 위해 필수
 
 public class Player : MonoBehaviour
 {
@@ -32,6 +33,12 @@ public class Player : MonoBehaviour
     public AudioClip shootSound;      // 눈물(총알) 발사 효과음
     public AudioClip getHitSound;     // (보너스) 플레이어가 맞았을 때 소리
 
+    // ★ [새로 추가됨] 코인 시스템
+    [Header("재화 및 UI")]
+    public int coinCount = 0;        // 현재 가진 코인 개수
+    public TextMeshProUGUI coinText;            // 화면에 띄울 텍스트 UI
+    public AudioClip coinGetSound;   // 짤랑! 하는 코인 획득 소리
+
     // 인스펙터에서 SFX 믹서 그룹을 넣을 빈칸
     public AudioMixerGroup sfxMixerGroup;
 
@@ -60,6 +67,8 @@ public class Player : MonoBehaviour
         }
 
         UpdateHealthUI();
+
+        UpdateCoinUI(); // 시작할 때 코인 숫자 0으로 띄워주기
     }
 
     void Update()
@@ -209,5 +218,28 @@ public class Player : MonoBehaviour
             audioSource.PlayOneShot(itemGetSound);
         }
 
+    }
+
+    // ★ [새로 추가됨] 코인을 먹었을 때 실행되는 함수
+    public void AddCoin(int amount)
+    {
+        coinCount += amount;
+        UpdateCoinUI();
+
+        // 짤랑! 소리 재생 (이미 믹서가 연결된 오디오 소스 사용)
+        if (coinGetSound != null)
+        {
+            audioSource.PlayOneShot(coinGetSound);
+        }
+    }
+
+    // ★ [새로 추가됨] 코인 글씨 업데이트
+    private void UpdateCoinUI()
+    {
+        if (coinText != null)
+        {
+            // 00, 01, 15 처럼 깔끔하게 두 자리 숫자로 띄워줍니다 (원치 않으면 그냥 ToString() 사용)
+            coinText.text = coinCount.ToString("D2");
+        }
     }
 }

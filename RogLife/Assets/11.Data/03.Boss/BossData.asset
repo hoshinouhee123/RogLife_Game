@@ -18,7 +18,7 @@ MonoBehaviour:
   moveSpeed: 1
   damage: 1
   hitSound: {fileID: 0}
-  deathSound: {fileID: 0}
+  deathSound: {fileID: 8300000, guid: 94ca23f7b7d4546d1b0e14ed723950a3, type: 3}
   bossDialogues:
   - speakerName: "\uC774\uC720\uB77C"
     characterPortrait: {fileID: 21300000, guid: 39918550647d55444bbc71b6cffad1e0, type: 3}

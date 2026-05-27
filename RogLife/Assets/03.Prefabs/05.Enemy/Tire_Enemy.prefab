@@ -74,6 +74,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 926b5b3b9f5069f40aca7562166a08e4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Enemy
+  enemyData: {fileID: 0}
+  currentRoom: {fileID: 0}
+  playerTransform: {fileID: 0}
+  isAwake: 0
+  bossState: 0
+  splitLevel: 0
+  myMaxHealth: 0
+  coinPrefab: {fileID: 9210097289332016191, guid: 984a3cd5ef2f1e146999f73236d61d50, type: 3}
+  coinDropChance: 10
 --- !u!212 &4167271358754032924
 SpriteRenderer:
   serializedVersion: 2

@@ -20,6 +20,11 @@ public class Enemy : MonoBehaviour
     private float stateTimer = 0f;
     private Vector2 dashDirection;
 
+    [Header("드랍 설정")]
+    public GameObject coinPrefab;       // 떨어뜨릴 코인 프리팹
+    [Range(0, 100)]
+    public float coinDropChance = 50f;  // 코인 드랍 확률 (기본 50%)
+
     void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
@@ -218,6 +223,18 @@ public class Enemy : MonoBehaviour
     void Die()
     {
         PlaySoundWithMixer(enemyData.deathSound);
+
+        // ★ [새로 추가됨] 죽기 직전에 확률 계산해서 코인 떨구기!
+        if (coinPrefab != null)
+        {
+            // 0~100 사이의 숫자를 뽑아서 지정한 확률보다 낮으면 당첨!
+            if (Random.Range(0, 100f) <= coinDropChance)
+            {
+                // 죽는 몬스터의 위치에 코인 생성
+                Instantiate(coinPrefab, transform.position, Quaternion.identity);
+            }
+        }
+
         Destroy(gameObject);
     }
 
