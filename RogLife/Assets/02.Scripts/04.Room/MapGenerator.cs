@@ -22,21 +22,35 @@ public class MapGenerator : MonoBehaviour
 
     [Header("몬스터 소환 설정")]
     public GameObject enemyPrefab;
-    public EnemyData[] possibleEnemies;
 
     [Header("아이템 방 설정")]
     public GameObject itemPickupPrefab;
     public ItemData[] possibleItems;
 
     // 보스방 설정
-    [Header("보스방 설정")]
-    public EnemyData[] possibleBosses;       // 보스용 몬스터 데이터 
+    [Header("보스방 설정")] 
     public GameObject nextStagePortalPrefab; // 아까 만든 NextStagePortal 프리팹
 
     [Header("상점방 설정")]
     public GameObject shopItemPrefab;    // 상점 진열대 프리팹 (ShopItem.cs)
     public GameObject merchantPrefab;    // 상인 NPC 프리팹 (InteractableObject)
     public Sprite shopHealthSprite;      // 체력 판매용 하트 이미지
+
+    [System.Serializable]
+    public class FloorData
+    {
+        public string floorName;             // 인스펙터 보기 편하게 (예: 1층, 2층)
+        public EnemyData[] enemies;          // 이 층에서 나오는 일반 몬스터들
+        public EnemyData[] bosses;           // 이 층에서 나오는 보스들
+    }
+
+    [Header("스테이지(층) 진행 설정")]
+    public int currentFloor = 1;
+    public int finalFloor = 3;
+
+    // [새로 추가된 층별 데이터 배열]
+    [Header("층별 몬스터 세팅")]
+    public FloorData[] floorSettings; // 여기에 1층, 2층, 3층 데이터를 각각 넣습니다.
 
 
     private Dictionary<Vector2Int, GameObject> spawnedRooms = new Dictionary<Vector2Int, GameObject>();
@@ -68,6 +82,8 @@ public class MapGenerator : MonoBehaviour
             else if (randomDir == 3) newPos += Vector2Int.right;
             if (!roomPositions.Contains(newPos)) roomPositions.Add(newPos);
         }
+
+
 
         // ==========================================
         // ★ 1. 보스방 지정 (시작방에서 가장 먼 방 찾기)
@@ -125,6 +141,11 @@ public class MapGenerator : MonoBehaviour
         // (혹시 아이템방이랑 겹치면 아이템방 위치를 변경)
         if (bossRoomPos == itemRoomPos) itemRoomPos = roomPositions[1];
 
+        // ★ [새로 추가] 현재 층수에 맞는 데이터 묶음을 가져옵니다.
+        // (배열은 0부터 시작하므로 1층은 인덱스 0번입니다. 에러 방지를 위해 Clamp 사용)
+        int floorIndex = Mathf.Clamp(currentFloor - 1, 0, floorSettings.Length - 1);
+        FloorData currentFloorData = floorSettings[floorIndex];
+
         foreach (Vector2Int pos in roomPositions)
         {
             Vector3 worldPos = new Vector3(pos.x * roomWidth, pos.y * roomHeight, 0);
@@ -172,14 +193,14 @@ public class MapGenerator : MonoBehaviour
                     }
                 }
             }
-            // 2. [추가됨] 보스방 소환
+            // 2. 보스방 소환
             else if (pos == bossRoomPos)
             {
                 EnemyData randomBoss = null;
-                if (possibleBosses.Length > 0)
-                    randomBoss = possibleBosses[Random.Range(0, possibleBosses.Length)];
+                // ★ [수정됨] currentFloorData.bosses 를 사용!
+                if (currentFloorData.bosses.Length > 0)
+                    randomBoss = currentFloorData.bosses[Random.Range(0, currentFloorData.bosses.Length)];
 
-                // 321[수정됨] 방 스크립트에 '어떤 보스 데이터'가 나오는지 함께 넘겨줍니다!
                 controller.SetAsBossRoom(itemPickupPrefab, possibleItems, nextStagePortalPrefab, randomBoss);
 
                 if (enemyPrefab != null && randomBoss != null)
@@ -187,29 +208,28 @@ public class MapGenerator : MonoBehaviour
                     GameObject spawnedBoss = Instantiate(enemyPrefab, worldPos, Quaternion.identity);
                     Enemy bossScript = spawnedBoss.GetComponent<Enemy>();
                     bossScript.Setup(randomBoss);
-                    spawnedBoss.transform.localScale = new Vector3(2f, 2f, 1f); // 2배 크기
-
-                    // ★ [이거 추가!] 보스에게도 알려줌
+                    spawnedBoss.transform.localScale = new Vector3(2f, 2f, 1f);
                     bossScript.currentRoom = controller;
-
                     controller.enemiesInRoom.Add(bossScript);
                 }
             }
             // 3. 일반 몬스터 소환
-            else if (pos != Vector2Int.zero && enemyPrefab != null && possibleEnemies.Length > 0)
+            // ★ [수정됨] currentFloorData.enemies 를 사용!
+            else if (pos != Vector2Int.zero && enemyPrefab != null && currentFloorData.enemies.Length > 0)
             {
                 int enemyCount = Random.Range(1, 4);
                 for (int i = 0; i < enemyCount; i++)
                 {
                     Vector3 randomOffset = new Vector3(Random.Range(-4f, 4f), Random.Range(-0.5f, 0.5f), 0);
                     GameObject spawnedEnemy = Instantiate(enemyPrefab, worldPos + randomOffset, Quaternion.identity);
+
                     Enemy enemyScript = spawnedEnemy.GetComponent<Enemy>();
-                    EnemyData randomData = possibleEnemies[Random.Range(0, possibleEnemies.Length)];
+
+                    // ★ [수정됨] currentFloorData.enemies 를 사용!
+                    EnemyData randomData = currentFloorData.enemies[Random.Range(0, currentFloorData.enemies.Length)];
                     enemyScript.Setup(randomData);
 
-                    // ★ [이거 추가!] 내가 태어난 방을 적에게 알려줌
                     enemyScript.currentRoom = controller;
-
                     controller.enemiesInRoom.Add(enemyScript);
                 }
             }

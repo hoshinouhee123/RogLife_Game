@@ -83,7 +83,7 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 5
   m_MaskInteraction: 0
-  m_Sprite: {fileID: -403967807140321213, guid: 0b7270d755f1c3a4ea3ebcc8b61dbe79, type: 3}
+  m_Sprite: {fileID: 21300000, guid: b2e6d43c9292dae4e817f1ae527c6a77, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -153,13 +153,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::InteractableObject
   dialogueLines:
   - speakerName: "\uC0C1\uC810 \uC8FC\uC778"
-    characterPortrait: {fileID: 0}
+    characterPortrait: {fileID: 21300000, guid: b56c999bfac862e4ca681ac588d46722, type: 3}
     sentence: "\uB0B4 \uC0C1\uC810\uC5D0 \uC628 \uAC78 \uD658\uC601\uD574!"
   - speakerName: "\uC0C1\uC810 \uC8FC\uC778"
-    characterPortrait: {fileID: 0}
+    characterPortrait: {fileID: 21300000, guid: b56c999bfac862e4ca681ac588d46722, type: 3}
     sentence: "\uC6D0\uD558\uB294 \uBB3C\uAC74\uC774 \uC788\uC73C\uBA74 \uB9D8\uAECF
-      \uC0AC\uAC00! \uBB3C\uB860, \uD560\uC778\uC740 \uC548\uD574\uC904\uAC70\uC57C."
+      \uC0AC\uAC00~ \uBB3C\uB860, \uD560\uC778\uC740 \uC548\uD574\uC904\uAC70\uC57C."
   - speakerName: "\uC0C1\uC810 \uC8FC\uC778"
-    characterPortrait: {fileID: 0}
+    characterPortrait: {fileID: 21300000, guid: b56c999bfac862e4ca681ac588d46722, type: 3}
     sentence: "\uBB50? \uB0B4 \uC774\uB984\uC774 \uBB50\uB0D0\uACE0? \uAE00\uC384~"
   nextSceneName: 

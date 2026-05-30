@@ -85,9 +85,12 @@ public class GameOverManager : MonoBehaviour
 
     private IEnumerator CreditsRoutine()
     {
-        PlayerPrefs.SetInt("Achievement_BadEnding1", 1);
-        PlayerPrefs.Save();
-        Debug.Log("업적 달성: [배드 엔딩 1] 해금!");
+        // [새로 추가된 코드] JSON 매니저에게 업적 달성을 알림!
+        if (AchievementManager.Instance != null)
+        {
+            AchievementManager.Instance.UnlockAchievement("BadEnding1");
+        }
+        // ==========================================
 
         if (BGMManager.Instance != null) BGMManager.Instance.PlayBadEndingBGM();
 

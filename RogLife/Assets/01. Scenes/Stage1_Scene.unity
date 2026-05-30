@@ -2261,18 +2261,42 @@ MonoBehaviour:
   - {fileID: 11400000, guid: b53f9699b80c2fb42aeb847e37349d22, type: 2}
   - {fileID: 11400000, guid: e364fd62eb3e87941991f2882df9b3a2, type: 2}
   enemyPrefab: {fileID: 1687396800370750227, guid: b3ac0e6f03c61d64aacf9d133891ec01, type: 3}
-  possibleEnemies:
-  - {fileID: 11400000, guid: 34f70918045e2ca43ac23ffb65340e65, type: 2}
   itemPickupPrefab: {fileID: 6912843631359446751, guid: e10ee81bf7e6b1c43bfe1edc331c83fe, type: 3}
   possibleItems:
   - {fileID: 11400000, guid: f4983ee118688044f974ad351f3eeb7d, type: 2}
   - {fileID: 11400000, guid: e32453b1797b0ee4d948505ea4ff1ad9, type: 2}
-  possibleBosses:
-  - {fileID: 11400000, guid: 82876b319c69e984294a0bf90883686a, type: 2}
   nextStagePortalPrefab: {fileID: 326277001260853878, guid: 6fd4b15f525815e4b974d5b36a1895c6, type: 3}
   shopItemPrefab: {fileID: 1488427771104201869, guid: a66adbc7d11ae6345a4c28a66129c51b, type: 3}
   merchantPrefab: {fileID: 9052034271783664804, guid: 5d7828d4395311548a9447064a37f0be, type: 3}
   shopHealthSprite: {fileID: 21300000, guid: c4a628aec032cff46b6622f136a72b9b, type: 3}
+  currentFloor: 1
+  finalFloor: 5
+  floorSettings:
+  - floorName: "1\uCE35"
+    enemies:
+    - {fileID: 11400000, guid: 34f70918045e2ca43ac23ffb65340e65, type: 2}
+    bosses:
+    - {fileID: 11400000, guid: 82876b319c69e984294a0bf90883686a, type: 2}
+  - floorName: "2\uCE35"
+    enemies:
+    - {fileID: 11400000, guid: 34f70918045e2ca43ac23ffb65340e65, type: 2}
+    bosses:
+    - {fileID: 11400000, guid: 82876b319c69e984294a0bf90883686a, type: 2}
+  - floorName: "3\uCE35"
+    enemies:
+    - {fileID: 11400000, guid: 34f70918045e2ca43ac23ffb65340e65, type: 2}
+    bosses:
+    - {fileID: 11400000, guid: 82876b319c69e984294a0bf90883686a, type: 2}
+  - floorName: "4\uCE35"
+    enemies:
+    - {fileID: 11400000, guid: 34f70918045e2ca43ac23ffb65340e65, type: 2}
+    bosses:
+    - {fileID: 11400000, guid: 82876b319c69e984294a0bf90883686a, type: 2}
+  - floorName: "5\uCE35"
+    enemies:
+    - {fileID: 11400000, guid: 34f70918045e2ca43ac23ffb65340e65, type: 2}
+    bosses:
+    - {fileID: 11400000, guid: 82876b319c69e984294a0bf90883686a, type: 2}
 --- !u!4 &820656832
 Transform:
   m_ObjectHideFlags: 0
