@@ -37,4 +37,7 @@ public class EnemyData : ScriptableObject
     public float dashPrepTime = 1.0f;        // 대쉬하기 전 기 모으는 시간 (초)
     public float stunTime = 2.0f;            // 벽에 부딪혔을 때 기절하는 시간 (초)
     public float wallCrashDamage = 5f;       // 벽에 박았을 때 입는 자해 데미지
+
+    // ★ [새로 추가] 죽을 때 나올 이펙트 프리팹
+    public GameObject deathEffectPrefab;
 }

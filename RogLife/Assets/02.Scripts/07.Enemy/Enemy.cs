@@ -25,6 +25,10 @@ public class Enemy : MonoBehaviour
     [Range(0, 100)]
     public float coinDropChance = 50f;  // 코인 드랍 확률 (기본 50%)
 
+    // ★ [추가됨] 열쇠 드랍 설정
+    public GameObject keyPrefab;
+    [Range(0, 100)] public float keyDropChance = 10f; // 일반 몹은 10% 정도로 낮게!
+
     void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
@@ -224,6 +228,13 @@ public class Enemy : MonoBehaviour
     {
         PlaySoundWithMixer(enemyData.deathSound);
 
+        // ★ [새로 추가됨] 죽는 이펙트 소환 (소환 후 1.5초 뒤 자동 파괴)
+        if (enemyData.deathEffectPrefab != null)
+        {
+            GameObject effect = Instantiate(enemyData.deathEffectPrefab, transform.position, Quaternion.identity);
+            Destroy(effect, 1.5f);
+        }
+
         // ★ [새로 추가됨] 죽기 직전에 확률 계산해서 코인 떨구기!
         if (coinPrefab != null)
         {
@@ -234,6 +245,10 @@ public class Enemy : MonoBehaviour
                 Instantiate(coinPrefab, transform.position, Quaternion.identity);
             }
         }
+
+        // ★ [추가됨] 열쇠 떨구기
+        if (keyPrefab != null && Random.Range(0, 100f) <= keyDropChance)
+            Instantiate(keyPrefab, transform.position, Quaternion.identity);
 
         Destroy(gameObject);
     }

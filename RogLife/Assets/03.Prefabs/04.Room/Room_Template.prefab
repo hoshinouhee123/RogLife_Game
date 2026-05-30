@@ -10,7 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 5470813299096818854}
   - component: {fileID: 7567250940158137516}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: Wall_Top
   m_TagString: Wall
   m_Icon: {fileID: 0}
@@ -309,7 +309,7 @@ GameObject:
   m_Component:
   - component: {fileID: 5084264180318379251}
   - component: {fileID: 2736047897397670574}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: Wall_Bottom
   m_TagString: Wall
   m_Icon: {fileID: 0}
@@ -620,6 +620,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Door
   doorType: 0
+  isLocked: 0
+  unlockedSprite: {fileID: 0}
+  doorSpriteRenderer: {fileID: 0}
 --- !u!1 &3178457880533259345
 GameObject:
   m_ObjectHideFlags: 0
@@ -941,6 +944,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Door
   doorType: 1
+  isLocked: 0
+  unlockedSprite: {fileID: 0}
+  doorSpriteRenderer: {fileID: 0}
 --- !u!1 &3860149097038342755
 GameObject:
   m_ObjectHideFlags: 0
@@ -951,7 +957,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4302569590016072485}
   - component: {fileID: 2878065676321445652}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: Wall_Bottom (1)
   m_TagString: Wall
   m_Icon: {fileID: 0}
@@ -1120,7 +1126,7 @@ GameObject:
   m_Component:
   - component: {fileID: 3432932867248688842}
   - component: {fileID: 4250831807237137940}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: Wall_Right (1)
   m_TagString: Wall
   m_Icon: {fileID: 0}
@@ -1198,7 +1204,7 @@ GameObject:
   m_Component:
   - component: {fileID: 8841319919085874897}
   - component: {fileID: 961912946521543126}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: Wall_Top (1)
   m_TagString: Wall
   m_Icon: {fileID: 0}
@@ -1418,6 +1424,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Door
   doorType: 3
+  isLocked: 0
+  unlockedSprite: {fileID: 0}
+  doorSpriteRenderer: {fileID: 0}
 --- !u!1 &4566415883391074912
 GameObject:
   m_ObjectHideFlags: 0
@@ -1610,7 +1619,7 @@ GameObject:
   m_Component:
   - component: {fileID: 3731625357759748389}
   - component: {fileID: 4165515111745528438}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: Wall_Left (1)
   m_TagString: Wall
   m_Icon: {fileID: 0}
@@ -1943,6 +1952,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Door
   doorType: 2
+  isLocked: 0
+  unlockedSprite: {fileID: 0}
+  doorSpriteRenderer: {fileID: 0}
 --- !u!1 &5766581008236005504
 GameObject:
   m_ObjectHideFlags: 0
@@ -2020,10 +2032,15 @@ MonoBehaviour:
   bossDoorSprite: {fileID: 21300000, guid: 4363a0070f9cbe548b62fdd5640d2c98, type: 3}
   itemDoorSprite: {fileID: 21300000, guid: 11af6e67aa6844545ae84168652b2264, type: 3}
   shopDoorSprite: {fileID: 21300000, guid: a21cf371c2fa7d14dab83c196f6489b4, type: 3}
+  lockedItemDoorSprite: {fileID: 21300000, guid: 9a9e740d5c1ecd74584e276b242df4b4, type: 3}
+  lockedShopDoorSprite: {fileID: 21300000, guid: 5f14e0eaf345614419f43ffa360ea456, type: 3}
   srDoorTop: {fileID: 964469320763537992}
   srDoorBottom: {fileID: 9023471405908414651}
   srDoorLeft: {fileID: 292034498758528026}
   srDoorRight: {fileID: 4854776056742855915}
+  dropCoinPrefab: {fileID: 9210097289332016191, guid: 984a3cd5ef2f1e146999f73236d61d50, type: 3}
+  dropKeyPrefab: {fileID: 9210097289332016191, guid: f64fa360511aac44c8f14d8e27353a85, type: 3}
+  dropHeartPrefab: {fileID: 9210097289332016191, guid: 741cba74bf5721c4a93b26fcc9b8ac82, type: 3}
   isVisited: 0
   isItemRoom: 0
   isShopRoom: 0
@@ -2249,7 +2266,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2653178353727075289}
   - component: {fileID: 1081262616954056528}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: Wall_Right
   m_TagString: Wall
   m_Icon: {fileID: 0}
@@ -2405,7 +2422,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2350619159289805403}
   - component: {fileID: 4224918705542854737}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: Wall_Left
   m_TagString: Wall
   m_Icon: {fileID: 0}

@@ -9,7 +9,6 @@ public class MapGenerator : MonoBehaviour
 
     [Header("맵 생성 설정")]
     public GameObject roomPrefab;
-    public int maxRooms = 15;
 
     [Header("방 크기 (RoomManager와 동일하게)")]
     public float roomWidth = 18f;
@@ -35,10 +34,15 @@ public class MapGenerator : MonoBehaviour
     public GameObject shopItemPrefab;    // 상점 진열대 프리팹 (ShopItem.cs)
     public GameObject merchantPrefab;    // 상인 NPC 프리팹 (InteractableObject)
     public Sprite shopHealthSprite;      // 체력 판매용 하트 이미지
+    public Sprite shopKeySprite; // ★ [추가됨] 열쇠 판매용 이미지
+
 
     [System.Serializable]
     public class FloorData
     {
+        // ★ [새로 추가된 부분] 이 층에서 생성할 방의 개수!
+        public int maxRooms = 15;
+
         public string floorName;             // 인스펙터 보기 편하게 (예: 1층, 2층)
         public EnemyData[] enemies;          // 이 층에서 나오는 일반 몬스터들
         public EnemyData[] bosses;           // 이 층에서 나오는 보스들
@@ -68,11 +72,21 @@ public class MapGenerator : MonoBehaviour
 
     void GenerateMap()
     {
+        // ==========================================
+        // ★ [핵심 수정] 맵을 짜기 '전'에 현재 층의 데이터를 제일 먼저 불러옵니다!
+        // ==========================================
+        int floorIndex = Mathf.Clamp(currentFloor - 1, 0, floorSettings.Length - 1);
+        FloorData currentFloorData = floorSettings[floorIndex];
+
+        // 현재 층에 설정된 방 개수를 가져옴
+        int currentMaxRooms = currentFloorData.maxRooms;
+
         List<Vector2Int> roomPositions = new List<Vector2Int>();
         roomPositions.Add(Vector2Int.zero);
 
-        // 1. 기본 방 좌표 랜덤 생성 (15개)
-        while (roomPositions.Count < maxRooms)
+        // 1. 기본 방 좌표 랜덤 생성 
+        // ★ [수정됨] 이제 maxRooms 대신 currentMaxRooms 개수만큼 반복합니다!
+        while (roomPositions.Count < currentMaxRooms)
         {
             Vector2Int currentPos = roomPositions[Random.Range(0, roomPositions.Count)];
             Vector2Int newPos = currentPos;
@@ -153,8 +167,6 @@ public class MapGenerator : MonoBehaviour
         }
         // ==========================================
 
-        int floorIndex = Mathf.Clamp(currentFloor - 1, 0, floorSettings.Length - 1);
-        FloorData currentFloorData = floorSettings[floorIndex];
 
         foreach (Vector2Int pos in roomPositions)
         {
@@ -187,6 +199,11 @@ public class MapGenerator : MonoBehaviour
                     GameObject healthStand = Instantiate(shopItemPrefab, worldPos + new Vector3(-3f, -1f, 0), Quaternion.identity);
                     healthStand.GetComponent<ShopItem>().SetupHealth(15, shopHealthSprite);
 
+                    // ★ [새로 추가됨] 중앙: 열쇠 판매대 (10원)
+                    GameObject keyStand = Instantiate(shopItemPrefab, worldPos + new Vector3(0f, -1f, 0), Quaternion.identity);
+                    keyStand.GetComponent<ShopItem>().SetupKey(10, shopKeySprite);
+
+                    // 오른쪽: 랜덤 아이템 판매대 (15원)
                     if (possibleItems.Length > 0)
                     {
                         GameObject itemStand = Instantiate(shopItemPrefab, worldPos + new Vector3(3f, -1f, 0), Quaternion.identity);

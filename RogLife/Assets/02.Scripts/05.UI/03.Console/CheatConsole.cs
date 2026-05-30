@@ -20,6 +20,12 @@ public class CheatConsole : MonoBehaviour
     public bool isConsoleActive = false;
     private float slideDuration = 0.2f;
 
+    // [변수 선언부에 추가]
+    [Header("스폰용 프리팹 (치트)")]
+    public GameObject spawnCoinPrefab;
+    public GameObject spawnKeyPrefab;
+    public GameObject spawnHeartPrefab;
+
     private void Awake()
     {
         if (Instance == null)
@@ -248,6 +254,7 @@ public class CheatConsole : MonoBehaviour
                 Log("killall : 현재 방에 있는 모든 적(보스 포함) 즉사");
                 Log("godmode : 치트 무적 모드 ON/OFF");
                 Log("clear : 콘솔 창 기록 지우기");
+                Log("spawn [coin/key/heart] [숫자] : 내 위치에 드랍 아이템 소환");
                 break;
 
             case "clear": // 로그 청소 명령어
@@ -255,6 +262,44 @@ public class CheatConsole : MonoBehaviour
                 break;
 
             // ==========================================
+
+            // ==========================================
+            // ★ [수정된 spawn 명령어]
+            // ==========================================
+            case "spawn": // 예: spawn coin 10
+                if (args.Length < 2) { Log("사용법: spawn [coin/key/heart] [개수]"); break; }
+
+                int count = 1;
+                if (args.Length >= 3) int.TryParse(args[2], out count);
+
+                GameObject targetPrefab = null;
+                if (args[1] == "coin") targetPrefab = spawnCoinPrefab;
+                else if (args[1] == "key") targetPrefab = spawnKeyPrefab;
+                else if (args[1] == "heart") targetPrefab = spawnHeartPrefab;
+
+                if (targetPrefab != null)
+                {
+                    // ★ [핵심] 현재 플레이어가 있는 방의 정중앙 좌표를 수학적으로 계산합니다!
+                    float rWidth = MapGenerator.Instance.roomWidth;
+                    float rHeight = MapGenerator.Instance.roomHeight;
+
+                    // 플레이어의 현재 위치를 방 크기로 나눠 반올림하면 현재 방의 중심 좌표가 딱 나옵니다.
+                    float centerX = Mathf.Round(player.transform.position.x / rWidth) * rWidth;
+                    float centerY = Mathf.Round(player.transform.position.y / rHeight) * rHeight;
+                    Vector3 roomCenter = new Vector3(centerX, centerY, 0);
+
+                    // 지정된 개수만큼 '방 정중앙'에 소환!
+                    for (int i = 0; i < count; i++)
+                    {
+                        Instantiate(targetPrefab, roomCenter, Quaternion.identity);
+                    }
+                    Log($"{args[1]} {count}개 방 중앙에 스폰 완료!");
+                }
+                else
+                {
+                    Log("알 수 없는 아이템입니다. (coin, key, heart 중 선택)");
+                }
+                break;
 
             default:
                 Log("알 수 없는 명령어입니다.");

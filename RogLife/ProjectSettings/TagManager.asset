@@ -15,10 +15,10 @@ TagManager:
   - Water
   - UI
   - Enemy
-  - 
+  - Player
   - Minimap
-  - 
-  - 
+  - Wall
+  - DropItem
   - 
   - 
   - 
@@ -46,4 +46,5 @@ TagManager:
     locked: 0
   m_RenderingLayers:
   - Default
+  - 
   m_MigratedRenderPipelines: []

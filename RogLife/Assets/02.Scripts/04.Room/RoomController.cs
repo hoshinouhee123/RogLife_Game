@@ -44,12 +44,19 @@ public class RoomController : MonoBehaviour
     public Sprite bossDoorSprite;    // 보스방 가는 문 이미지 (해골)
     public Sprite itemDoorSprite;    // 아이템방 가는 문 이미지 (황금)
     public Sprite shopDoorSprite;    // 상점방 가는 문 이미지 (자물쇠 등)
+    public Sprite lockedItemDoorSprite; // 잠긴 황금방(아이템) 문 이미지
+    public Sprite lockedShopDoorSprite; // 잠긴 상점방 문 이미지
 
     [Header("문 SpriteRenderer 연결")]
     public SpriteRenderer srDoorTop;
     public SpriteRenderer srDoorBottom;
     public SpriteRenderer srDoorLeft;
     public SpriteRenderer srDoorRight;
+
+    [Header("보스 클리어 드랍템")]
+    public GameObject dropCoinPrefab;
+    public GameObject dropKeyPrefab;
+    public GameObject dropHeartPrefab;
 
     // ★ [추가됨] 이 방을 플레이어가 직접 밟았는지(가봤는지) 기억하는 변수
     public bool isVisited = false;
@@ -79,21 +86,51 @@ public class RoomController : MonoBehaviour
         UnlockDoors();
 
         // ★ [새로 추가] 이웃 방의 정체를 확인하고 문 이미지를 바꿈!
-        UpdateDoorSprite(srDoorTop, tRoom);
-        UpdateDoorSprite(srDoorBottom, bRoom);
-        UpdateDoorSprite(srDoorLeft, lRoom);
-        UpdateDoorSprite(srDoorRight, rRoom);
+        UpdateDoorSprite(doorTop, srDoorTop, tRoom);
+        UpdateDoorSprite(doorBottom, srDoorBottom, bRoom);
+        UpdateDoorSprite(doorLeft, srDoorLeft, lRoom);
+        UpdateDoorSprite(doorRight, srDoorRight, rRoom);
     }
 
     // ★ [새로 추가] 문 이미지를 바꿔주는 함수
-    private void UpdateDoorSprite(SpriteRenderer sr, RoomController neighbor)
+    // ★ [수정됨] 문 이미지를 바꿔주고 잠금 설정까지 하는 함수
+    private void UpdateDoorSprite(GameObject doorObj, SpriteRenderer sr, RoomController neighbor)
     {
-        if (sr == null || neighbor == null) return;
+        if (sr == null || neighbor == null || doorObj == null) return;
 
-        if (neighbor.isBossRoom && bossDoorSprite != null) sr.sprite = bossDoorSprite;
-        else if (neighbor.isItemRoom && itemDoorSprite != null) sr.sprite = itemDoorSprite;
-        else if (neighbor.isShopRoom && shopDoorSprite != null) sr.sprite = shopDoorSprite;
-        else if (defaultDoorSprite != null) sr.sprite = defaultDoorSprite;
+        Door doorScript = doorObj.GetComponent<Door>();
+        doorScript.isLocked = false; // 기본은 안 잠김
+
+        // 2층 이상이고, 아이템방이거나 상점방이면 잠금!
+        bool shouldLock = MapGenerator.Instance.currentFloor >= 2 && (neighbor.isItemRoom || neighbor.isShopRoom);
+
+        if (shouldLock)
+        {
+            // ==========================================
+            // ★ [여기 수정됨!] 방 종류에 따라 다른 잠긴 문 이미지 적용
+            // ==========================================
+            if (neighbor.isItemRoom)
+            {
+                sr.sprite = lockedItemDoorSprite; // 잠긴 황금방 문으로 변경
+                doorScript.unlockedSprite = itemDoorSprite; // 열쇠 쓰면 황금문으로 변함
+            }
+            else if (neighbor.isShopRoom)
+            {
+                sr.sprite = lockedShopDoorSprite; // 잠긴 상점 문으로 변경
+                doorScript.unlockedSprite = shopDoorSprite; // 열쇠 쓰면 상점문으로 변함
+            }
+
+            doorScript.isLocked = true;
+            doorScript.doorSpriteRenderer = sr;
+        }
+        else
+        {
+            // 잠기지 않은 문 처리
+            if (neighbor.isBossRoom) sr.sprite = bossDoorSprite;
+            else if (neighbor.isItemRoom) sr.sprite = itemDoorSprite;
+            else if (neighbor.isShopRoom) sr.sprite = shopDoorSprite;
+            else sr.sprite = defaultDoorSprite;
+        }
     }
 
     // ★ [핵심 추가 기능] 상황에 맞게 통로를 켜주는 마법의 함수
@@ -257,6 +294,22 @@ public class RoomController : MonoBehaviour
         {
             Instantiate(portalPrefab, transform.position + new Vector3(0, 1.5f, 0), Quaternion.identity);
         }
+
+        // ==========================================
+        // ★ 3. 보너스 픽업 아이템 스폰 (각각의 확률로 스폰)
+        // ==========================================
+
+        // 코인은 100% 확률로 하나 줌 (살짝 왼쪽에 스폰)
+        if (dropCoinPrefab != null && Random.Range(0, 100) < 100)
+            Instantiate(dropCoinPrefab, transform.position + new Vector3(-1.5f, -1f, 0), Quaternion.identity);
+
+        // 열쇠는 50% 확률로 줌 (살짝 오른쪽에 스폰)
+        if (dropKeyPrefab != null && Random.Range(0, 100) < 7)
+            Instantiate(dropKeyPrefab, transform.position + new Vector3(1.5f, -1f, 0), Quaternion.identity);
+
+        // 하트는 80% 확률로 줌 (살짝 아래쪽에 스폰)
+        if (dropHeartPrefab != null && Random.Range(0, 100) < 15)
+            Instantiate(dropHeartPrefab, transform.position + new Vector3(0, -2f, 0), Quaternion.identity);
     }
 
     // 보스 컷신 연출 코루틴

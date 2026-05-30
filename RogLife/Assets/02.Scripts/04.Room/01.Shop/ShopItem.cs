@@ -4,7 +4,8 @@ using UnityEngine.UI;
 
 public class ShopItem : MonoBehaviour
 {
-    public enum ShopItemType { Item, Health } // 파는 물건 종류 (아이템 or 체력)
+    // ★ [수정됨] Key 타입 추가
+    public enum ShopItemType { Item, Health, Key }
     public ShopItemType itemType;
 
     public int price = 15;        // 가격
@@ -34,6 +35,16 @@ public class ShopItem : MonoBehaviour
         if (priceText != null) priceText.text = price.ToString();
     }
 
+    // ★ [새로 추가된 세팅 함수]
+    public void SetupKey(int cost, Sprite keySprite)
+    {
+        itemType = ShopItemType.Key;
+        price = cost;
+        sr = GetComponent<SpriteRenderer>();
+        if (keySprite != null) sr.sprite = keySprite;
+        if (priceText != null) priceText.text = price.ToString();
+    }
+
     // 플레이어가 물건에 부딪혔을 때 (구매 시도)
     private void OnTriggerEnter2D(Collider2D collision)
     {
@@ -41,10 +52,11 @@ public class ShopItem : MonoBehaviour
         {
             Player player = collision.GetComponent<Player>();
 
-            // 1. 체력 회복을 사려는데 이미 풀피라면? 돈 안 낭비하게 구매 거부!
+            // 체력 꽉 찼으면 거절
             if (itemType == ShopItemType.Health && player.currentHealth >= player.maxHealth) return;
+            // ★ [추가됨] 열쇠 99개면 거절
+            if (itemType == ShopItemType.Key && player.keyCount >= 99) return;
 
-            // 2. 플레이어 지갑에서 돈이 성공적으로 빠져나갔다면? (돈이 부족하면 안 빠짐)
             if (player.SpendCoin(price))
             {
                 if (itemType == ShopItemType.Item)
@@ -52,13 +64,11 @@ public class ShopItem : MonoBehaviour
                     player.AcquireItem(itemData);
                     ItemUIManager.Instance.ShowItemGet(itemData);
                 }
-                else if (itemType == ShopItemType.Health)
-                {
-                    player.Heal(1); // 하트 1칸 회복
-                    // 힐 효과음이 있다면 여기서 플레이어 AudioSource로 틀어도 됩니다.
-                }
+                else if (itemType == ShopItemType.Health) player.Heal(1);
+                // ★ [추가됨] 열쇠 구매 시
+                else if (itemType == ShopItemType.Key) player.AddKey(1);
 
-                Destroy(gameObject); // 구매 완료 후 판매대에서 물건 파괴!
+                Destroy(gameObject);
             }
         }
     }

@@ -15,7 +15,7 @@ GameObject:
   - component: {fileID: 5658529729739040526}
   - component: {fileID: 1440921529520676781}
   m_Layer: 10
-  m_Name: CoinPickup
+  m_Name: HeartPickup
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -85,7 +85,7 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 5
   m_MaskInteraction: 0
-  m_Sprite: {fileID: 21300000, guid: 48ff2714e9d91f1428594a9744d6d520, type: 3}
+  m_Sprite: {fileID: 21300000, guid: c4a628aec032cff46b6622f136a72b9b, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -129,8 +129,8 @@ CircleCollider2D:
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: 0, y: -0.03647627}
-  m_Radius: 0.22084685
+  m_Offset: {x: -0.01491341, y: -0.036476284}
+  m_Radius: 0.20593342
 --- !u!50 &3213684269375384606
 Rigidbody2D:
   serializedVersion: 5
@@ -192,8 +192,8 @@ CircleCollider2D:
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: 0.0028262138, y: -0.100200474}
-  m_Radius: 0.450064
+  m_Offset: {x: -0.0012643337, y: -0.0046575665}
+  m_Radius: 0.37045693
 --- !u!114 &1440921529520676781
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -206,5 +206,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8095e3ab6bbdfcc45920a9163eeb9bdd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DropItem
-  dropType: 0
+  dropType: 2
   amount: 1

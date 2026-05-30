@@ -39,6 +39,13 @@ public class Player : MonoBehaviour
     public TextMeshProUGUI coinText;            // 화면에 띄울 텍스트 UI
     public AudioClip coinGetSound;   // 짤랑! 하는 코인 획득 소리
 
+    // ★ [열쇠용 변수 추가]
+    public int keyCount = 0;
+    public TextMeshProUGUI keyText;
+    public AudioClip keyGetSound; // 짤그랑! 열쇠 소리
+
+    public AudioClip heartGetSound; // 띠링! 하는 하트 획득 소리
+
     // 인스펙터에서 SFX 믹서 그룹을 넣을 빈칸
     public AudioMixerGroup sfxMixerGroup;
 
@@ -74,6 +81,8 @@ public class Player : MonoBehaviour
         UpdateHealthUI();
 
         UpdateCoinUI(); // 시작할 때 코인 숫자 0으로 띄워주기
+
+        UpdateKeyUI(); // ★ 추가
     }
 
     void Update()
@@ -250,8 +259,14 @@ public class Player : MonoBehaviour
     public void Heal(int amount)
     {
         currentHealth += amount;
-        if (currentHealth > maxHealth) currentHealth = maxHealth; // 최대치 초과 방지
+        if (currentHealth > maxHealth) currentHealth = maxHealth;
         UpdateHealthUI();
+
+        // ★ [추가됨] 체력이 회복될 때 효과음 재생! (바닥에서 먹든, 상점에서 사든 다 소리가 납니다)
+        if (heartGetSound != null)
+        {
+            audioSource.PlayOneShot(heartGetSound);
+        }
     }
 
     // ★ [새로 추가됨] 코인 글씨 업데이트
@@ -262,5 +277,30 @@ public class Player : MonoBehaviour
             // 00, 01, 15 처럼 깔끔하게 두 자리 숫자로 띄워줍니다 (원치 않으면 그냥 ToString() 사용)
             coinText.text = coinCount.ToString("D2");
         }
+    }
+
+    // ★ [새로 추가된 열쇠 획득/사용 함수]
+    public void AddKey(int amount)
+    {
+        keyCount += amount;
+        if (keyCount > 99) keyCount = 99;
+        UpdateKeyUI();
+        if (keyGetSound != null) audioSource.PlayOneShot(keyGetSound);
+    }
+
+    public bool SpendKey(int amount)
+    {
+        if (keyCount >= amount)
+        {
+            keyCount -= amount;
+            UpdateKeyUI();
+            return true;
+        }
+        return false; // 열쇠 부족!
+    }
+
+    private void UpdateKeyUI()
+    {
+        if (keyText != null) keyText.text = keyCount.ToString("D2");
     }
 }
