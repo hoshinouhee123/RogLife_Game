@@ -35,23 +35,32 @@ public class ItemUIManager : MonoBehaviour
         popupPanel.SetActive(false);
     }
 
-    public void ShowItemGet(ItemData item)
+    // ★ [수정됨] 개수(count)를 받을 수 있게 추가
+    public void ShowItemGet(ItemData item, int count = 1)
     {
-        GameObject newSlot = Instantiate(inventorySlotPrefab, inventoryParent);
-        newSlot.GetComponent<Image>().sprite = item.itemIcon;
+        // 1. 우측 인벤토리에는 먹은 '개수만큼' 아이콘을 반복해서 추가해 줍니다!
+        for (int i = 0; i < count; i++)
+        {
+            GameObject newSlot = Instantiate(inventorySlotPrefab, inventoryParent);
+            newSlot.GetComponent<Image>().sprite = item.itemIcon;
+        }
 
-        StartCoroutine(PopupRoutine(item));
+        // 2. 팝업 코루틴으로 개수 전달
+        StartCoroutine(PopupRoutine(item, count));
     }
 
-    private IEnumerator PopupRoutine(ItemData item)
+    private IEnumerator PopupRoutine(ItemData item, int count)
     {
         // 1. UI 텍스트 및 이미지 세팅
-        popupNameText.text = item.itemName;
+        // 여러 개를 먹었다면 이름 뒤에 " x5" 처럼 개수를 붙여줍니다!
+        string countText = count > 1 ? " x" + count : "";
+        popupNameText.text = item.itemName + countText;
+
         popupDescText.text = item.itemDescription;
         popupIcon.sprite = item.itemIcon;
 
         RectTransform popupRect = popupPanel.GetComponent<RectTransform>();
-        popupRect.localScale = Vector3.one; // 크기는 무조건 1로 고정
+        popupRect.localScale = Vector3.one;
 
         // 2. 화면 우측 바깥쪽 좌표 계산 (화면 너비만큼 오른쪽으로 밀어둠)
         float slideOffset = Screen.width;

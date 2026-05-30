@@ -51,6 +51,8 @@ public class Player : MonoBehaviour
     private PlayerController playerController;
     private SpriteRenderer sr;
 
+    public bool godMode = false; // 치트 무적 모드
+
     void Start()
     {
         currentHealth = maxHealth;
@@ -111,8 +113,9 @@ public class Player : MonoBehaviour
     // ★ [수정됨] 데미지 받는 함수
     public void TakeDamage(int damage)
     {
-        // 무적 상태이거나, 이미 죽었으면 데미지 무시!! (버그 완벽 차단)
-        if (isInvincible || isDead) return;
+        // godMode가 켜져 있으면 데미지를 절대 받지 않음!
+        if (isInvincible || isDead || godMode) return;
+        
 
         currentHealth -= damage;
         UpdateHealthUI();
@@ -194,33 +197,28 @@ public class Player : MonoBehaviour
         }
     }
 
-    public void AcquireItem(ItemData item)
+    // ★ [수정됨] 뒤에 개수(count)를 받을 수 있게 추가 (아무것도 안 적으면 기본 1개)
+    public void AcquireItem(ItemData item, int count = 1)
     {
-        // 1. 공격력 증가
-        attackDamage += item.addDamage;
+        // 1. 받은 개수(count)만큼 곱해서 스탯 증가!
+        attackDamage += item.addDamage * count;
 
-        // 2. 체력이 늘어나는 아이템이라면?
         if (item.addMaxHealth > 0)
         {
-            maxHealth += item.addMaxHealth;
-            currentHealth += item.addMaxHealth; // 늘어난 만큼 피도 채워줌
-            UpdateHealthUI(); // 늘어난 하트 UI 새로고침
+            maxHealth += item.addMaxHealth * count;
+            currentHealth += item.addMaxHealth * count;
+            UpdateHealthUI();
         }
 
-        // 3. ★ [새로 추가된 부분] 이동 속도 증가!
         if (item.addMoveSpeed > 0 && playerController != null)
         {
-            playerController.moveSpeed += item.addMoveSpeed;
-            // (선택) 스피드가 너무 빨라지는 걸 막고 싶다면 최대치 제한을 걸 수도 있습니다.
-            // if (playerController.moveSpeed > 10f) playerController.moveSpeed = 10f;
+            playerController.moveSpeed += item.addMoveSpeed * count;
         }
 
-        // [2. 여기에 효과음 재생 코드 한 줄 추가!]
         if (itemGetSound != null)
         {
             audioSource.PlayOneShot(itemGetSound);
         }
-
     }
 
     // ★ [수정됨] 코인 획득 시 최대 99개 제한

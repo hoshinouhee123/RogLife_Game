@@ -20,11 +20,12 @@ public class RoomController : MonoBehaviour
     [Header("특수 방 마커")]
     public GameObject itemRoomMarker; // 미니맵에 띄울 황금방 아이콘
 
+    // ★ [수정된 코드] 다른 스크립트에서 문이 뚫렸는지 확인할 수 있게 public으로 변경!
     private RoomController tRoom, bRoom, lRoom, rRoom;
-    private bool hasT, hasB, hasL, hasR;
+    public bool hasT, hasB, hasL, hasR;
 
     private bool isCleared = false;
-    private bool isPlayerInRoom = false;
+    public bool isPlayerInRoom = false;
 
     [Header("보스방 설정")]
     public GameObject bossRoomMarker; // 미니맵 보스방 마커 (빨간색)
@@ -41,6 +42,10 @@ public class RoomController : MonoBehaviour
     public bool isVisited = false;
 
     private EnemyData myBossData; // 내 방에 소환된 보스 정보
+
+    // [아래 2개 변수 새로 추가]
+    public bool isItemRoom = false;
+    public bool isShopRoom = false;
 
     public List<Enemy> enemiesInRoom = new List<Enemy>();
 
@@ -180,13 +185,11 @@ public class RoomController : MonoBehaviour
 
 
     // MapGenerator가 "너 황금방 해라!" 라고 명령할 때 부를 함수
+    // [SetAsItemRoom 함수 안쪽 수정]
     public void SetAsItemRoom()
     {
-        // 미니맵 마커 켜기
-        if (itemRoomMarker != null)
-        {
-            itemRoomMarker.SetActive(true);
-        }
+        isItemRoom = true; // 추가됨
+        if (itemRoomMarker != null) itemRoomMarker.SetActive(true);
     }
 
     // ★ [1. 수정됨] MapGenerator가 보스 정보를 넘겨주도록 파라미터 추가
@@ -277,8 +280,12 @@ public class RoomController : MonoBehaviour
 
 
     // ★ [함수 추가]
+    // [SetAsShopRoom 함수 안쪽 수정]
     public void SetAsShopRoom()
     {
+        isShopRoom = true; // 추가됨
         if (shopRoomMarker != null) shopRoomMarker.SetActive(true);
     }
+
+
 }

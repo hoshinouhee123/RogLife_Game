@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Runtime.InteropServices;
 using UnityEngine;
 
 public class RoomManager : MonoBehaviour
@@ -111,5 +112,35 @@ public class RoomManager : MonoBehaviour
 
         // 카메라 위치도 즉시 시작 방(0,0)으로 이동
         mainCamera.transform.position = new Vector3(0, 0, mainCamera.transform.position.z);
+    }
+
+    // [RoomManager.cs 맨 아래에 새로 추가]
+    // 치트 콘솔이 강제로 방을 이동시킬 때 사용하는 순간이동 함수
+    // ★ [수정됨] 좌표(Vector3) 대신 방(RoomController) 전체를 넘겨받습니다.
+    public void CheatTeleport(RoomController targetRoom)
+    {
+        // 1. 카메라 이동 (방의 정중앙 좌표)
+        Vector3 roomCenter = targetRoom.transform.position;
+        currentRoomX = Mathf.RoundToInt(roomCenter.x / roomWidth);
+        currentRoomY = Mathf.RoundToInt(roomCenter.y / roomHeight);
+
+        mainCamera.transform.position = new Vector3(roomCenter.x, roomCenter.y, mainCamera.transform.position.z);
+
+        // 2. 플레이어 이동 (뚫려있는 문을 찾아서 그 문 앞 'offset' 안쪽에 스폰!)
+        Vector3 spawnPos = roomCenter;
+
+        // 아래문이 뚫려있으면 아래문 입구로
+        if (targetRoom.hasB) spawnPos += new Vector3(0, -roomHeight / 2 + offset, 0);
+        // 윗문이 뚫려있으면 윗문 입구로
+        else if (targetRoom.hasT) spawnPos += new Vector3(0, roomHeight / 2 - offset, 0);
+        // 왼쪽 문이 뚫려있으면 왼쪽 입구로
+        else if (targetRoom.hasL) spawnPos += new Vector3(-roomWidth / 2 + offset, 0, 0);
+        // 오른쪽 문이 뚫려있으면 오른쪽 입구로
+        else if (targetRoom.hasR) spawnPos += new Vector3(roomWidth / 2 - offset, 0, 0);
+        // (만약의 버그로 사방이 다 막힌 방이라면 기본값으로 아래쪽에 소환)
+        else spawnPos += new Vector3(0, -roomHeight / 2 + offset, 0);
+
+        spawnPos.z = 0;
+        player.position = spawnPos;
     }
 }
