@@ -2094,7 +2094,7 @@ MonoBehaviour:
   keyCount: 0
   keyText: {fileID: 86963304}
   keyGetSound: {fileID: 8300000, guid: 0b5de865586844050b285d4a3fd6b033, type: 3}
-  heartGetSound: {fileID: 0}
+  heartGetSound: {fileID: 8300000, guid: 370d369e8128b4244af8f510a251814d, type: 3}
   sfxMixerGroup: {fileID: 973380146946736083, guid: 4c70c6fcbb7d16746ae68958f86f2bb4, type: 2}
   itemGetSound: {fileID: 8300000, guid: d48368a9e8e91d74ebe582b990b4944d, type: 3}
   godMode: 0

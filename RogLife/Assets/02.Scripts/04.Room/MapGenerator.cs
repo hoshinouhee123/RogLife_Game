@@ -196,17 +196,17 @@ public class MapGenerator : MonoBehaviour
                 if (merchantPrefab != null) Instantiate(merchantPrefab, worldPos + new Vector3(0, 2f, 0), Quaternion.identity);
                 if (shopItemPrefab != null)
                 {
-                    GameObject healthStand = Instantiate(shopItemPrefab, worldPos + new Vector3(-3f, -1f, 0), Quaternion.identity);
+                    GameObject healthStand = Instantiate(shopItemPrefab, worldPos + new Vector3(-3f, -0.5f, 0), Quaternion.identity);
                     healthStand.GetComponent<ShopItem>().SetupHealth(15, shopHealthSprite);
 
                     // ★ [새로 추가됨] 중앙: 열쇠 판매대 (10원)
-                    GameObject keyStand = Instantiate(shopItemPrefab, worldPos + new Vector3(0f, -1f, 0), Quaternion.identity);
+                    GameObject keyStand = Instantiate(shopItemPrefab, worldPos + new Vector3(0f, -0.5f, 0), Quaternion.identity);
                     keyStand.GetComponent<ShopItem>().SetupKey(10, shopKeySprite);
 
                     // 오른쪽: 랜덤 아이템 판매대 (15원)
                     if (possibleItems.Length > 0)
                     {
-                        GameObject itemStand = Instantiate(shopItemPrefab, worldPos + new Vector3(3f, -1f, 0), Quaternion.identity);
+                        GameObject itemStand = Instantiate(shopItemPrefab, worldPos + new Vector3(3f, -0.5f, 0), Quaternion.identity);
                         ItemData randomItemData = possibleItems[Random.Range(0, possibleItems.Length)];
                         itemStand.GetComponent<ShopItem>().SetupItem(randomItemData, 15);
                     }
