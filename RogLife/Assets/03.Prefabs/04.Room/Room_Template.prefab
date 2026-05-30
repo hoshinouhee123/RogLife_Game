@@ -2008,10 +2008,25 @@ MonoBehaviour:
   mapIconLeft: {fileID: 344638778712044821}
   mapIconRight: {fileID: 9193921219174916510}
   itemRoomMarker: {fileID: 762645967385463031}
+  hasT: 0
+  hasB: 0
+  hasL: 0
+  hasR: 0
+  isPlayerInRoom: 0
   bossRoomMarker: {fileID: 4566415883391074912}
   isBossRoom: 0
   shopRoomMarker: {fileID: 4586824828592110285}
+  defaultDoorSprite: {fileID: 21300000, guid: 3a0eb7cb41376df45b9e95642ffd901c, type: 3}
+  bossDoorSprite: {fileID: 21300000, guid: 4363a0070f9cbe548b62fdd5640d2c98, type: 3}
+  itemDoorSprite: {fileID: 21300000, guid: 11af6e67aa6844545ae84168652b2264, type: 3}
+  shopDoorSprite: {fileID: 21300000, guid: a21cf371c2fa7d14dab83c196f6489b4, type: 3}
+  srDoorTop: {fileID: 964469320763537992}
+  srDoorBottom: {fileID: 9023471405908414651}
+  srDoorLeft: {fileID: 292034498758528026}
+  srDoorRight: {fileID: 4854776056742855915}
   isVisited: 0
+  isItemRoom: 0
+  isShopRoom: 0
   enemiesInRoom: []
 --- !u!61 &8478315549301306905
 BoxCollider2D:

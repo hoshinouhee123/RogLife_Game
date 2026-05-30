@@ -84,6 +84,9 @@ public class Player : MonoBehaviour
     // 공격 (화살표 키)
     void HandleShooting()
     {
+        // ★ [새로 추가됨] 콘솔 켜져있으면 총 쏘기 금지!
+        if (CheatConsole.Instance != null && CheatConsole.Instance.isConsoleActive) return;
+
         if (Time.time < nextFireTime) return;
 
         Vector2 shootDir = Vector2.zero;

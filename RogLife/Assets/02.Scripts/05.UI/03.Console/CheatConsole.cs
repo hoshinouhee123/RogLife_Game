@@ -16,7 +16,8 @@ public class CheatConsole : MonoBehaviour
     // ★ [새로 추가됨] 스크롤 뷰를 조작하기 위한 변수
     public UnityEngine.UI.ScrollRect logScrollRect;
 
-    private bool isConsoleActive = false;
+    // ★ [수정된 코드] 다른 곳에서 확인할 수 있게 public으로 바꿉니다!
+    public bool isConsoleActive = false;
     private float slideDuration = 0.2f;
 
     private void Awake()
@@ -194,19 +195,37 @@ public class CheatConsole : MonoBehaviour
 
             case "killall": // 예: killall
                 RoomController[] allRooms = FindObjectsOfType<RoomController>();
+                RoomController currentRoom = null;
+                float closestDist = float.MaxValue;
+
+                // 1. 물리 충돌(Trigger) 여부와 상관없이, 플레이어와 가장 가까운 방을 강제로 찾습니다.
                 foreach (var room in allRooms)
                 {
-                    if (room.isPlayerInRoom) // 플레이어가 있는 현재 방만 검색
+                    float dist = Vector2.Distance(player.transform.position, room.transform.position);
+                    if (dist < closestDist)
                     {
-                        // 리스트에서 지워지므로 역순으로 데미지를 입힘
-                        for (int i = room.enemiesInRoom.Count - 1; i >= 0; i--)
-                        {
-                            if (room.enemiesInRoom[i] != null)
-                                room.enemiesInRoom[i].TakeDamage(9999);
-                        }
-                        Log("현재 방의 모든 적을 말살했습니다!");
-                        break;
+                        closestDist = dist;
+                        currentRoom = room;
                     }
+                }
+
+                if (currentRoom != null)
+                {
+                    int killCount = 0;
+                    // 2. 데미지를 999999로 올려서 체력이 아무리 높아도 무조건 즉사시킵니다.
+                    for (int i = currentRoom.enemiesInRoom.Count - 1; i >= 0; i--)
+                    {
+                        if (currentRoom.enemiesInRoom[i] != null)
+                        {
+                            currentRoom.enemiesInRoom[i].TakeDamage(999999f);
+                            killCount++;
+                        }
+                    }
+                    Log($"현재 방의 적 {killCount}마리를 즉사시켰습니다!");
+                }
+                else
+                {
+                    Log("방을 찾을 수 없습니다.");
                 }
                 break;
 

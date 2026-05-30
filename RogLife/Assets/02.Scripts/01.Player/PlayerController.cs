@@ -38,6 +38,9 @@ public class PlayerController : MonoBehaviour
 
     private void Update()
     {
+        // ★ [새로 추가됨] 치트 콘솔이 켜져있으면 이동, 상호작용 등 모든 키보드 입력을 무시합니다!
+        if (CheatConsole.Instance != null && CheatConsole.Instance.isConsoleActive) return;
+
         // 1. 대화 중일 때의 플레이어 제어
         if (DialogueManager.instance != null && DialogueManager.instance.isDialogueActive)
         {

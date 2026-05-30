@@ -155,6 +155,9 @@ public class DialogueManager : MonoBehaviour
     // ★ [새로 추가됨] 대화 매니저가 직접 스페이스바를 감지합니다!
     private void Update()
     {
+        // ★ [새로 추가됨] 콘솔 켜져있으면 띄어쓰기(스페이스바)를 쳐도 대화가 안 넘어감!
+        if (CheatConsole.Instance != null && CheatConsole.Instance.isConsoleActive) return;
+
         // 대화창이 켜져 있을 때만 작동
         if (isDialogueActive)
         {

@@ -71,6 +71,7 @@ public class MapGenerator : MonoBehaviour
         List<Vector2Int> roomPositions = new List<Vector2Int>();
         roomPositions.Add(Vector2Int.zero);
 
+        // 1. 기본 방 좌표 랜덤 생성 (15개)
         while (roomPositions.Count < maxRooms)
         {
             Vector2Int currentPos = roomPositions[Random.Range(0, roomPositions.Count)];
@@ -80,69 +81,78 @@ public class MapGenerator : MonoBehaviour
             else if (randomDir == 1) newPos += Vector2Int.down;
             else if (randomDir == 2) newPos += Vector2Int.left;
             else if (randomDir == 3) newPos += Vector2Int.right;
+
             if (!roomPositions.Contains(newPos)) roomPositions.Add(newPos);
         }
 
-
-
         // ==========================================
-        // ★ 1. 보스방 지정 (시작방에서 가장 먼 방 찾기)
+        // ★ [업그레이드!] 맵 바깥쪽 빈 공간 중, 딱 1개의 방과 맞닿은 '진짜 막다른 길 후보지' 싹 다 찾기
         // ==========================================
-        Vector2Int bossRoomPos = Vector2Int.zero;
-        int maxDist = -1;
+        List<Vector2Int> potentialDeadEnds = new List<Vector2Int>();
+        Vector2Int[] directions = { Vector2Int.up, Vector2Int.down, Vector2Int.left, Vector2Int.right };
+
         foreach (Vector2Int pos in roomPositions)
         {
-            // 시작점(0,0)으로부터 X칸수 + Y칸수 = 실제 이동 거리
-            int dist = Mathf.Abs(pos.x) + Mathf.Abs(pos.y);
-            if (dist > maxDist && pos != Vector2Int.zero)
+            foreach (Vector2Int dir in directions)
             {
-                maxDist = dist;
-                bossRoomPos = pos;
+                Vector2Int emptySpace = pos + dir;
+
+                // 그 자리가 비어있고, 리스트에 아직 안 들어갔다면
+                if (!roomPositions.Contains(emptySpace) && !potentialDeadEnds.Contains(emptySpace))
+                {
+                    // 이 빈 공간이 기존 방들과 몇 개나 맞닿아 있는지 검사
+                    int touchCount = 0;
+                    foreach (Vector2Int checkDir in directions)
+                    {
+                        if (roomPositions.Contains(emptySpace + checkDir)) touchCount++;
+                    }
+
+                    // 딱 1개의 방(입구)하고만 맞닿아 있다면 완벽한 막다른 길 후보!
+                    if (touchCount == 1)
+                    {
+                        potentialDeadEnds.Add(emptySpace);
+                    }
+                }
             }
         }
 
         // ==========================================
-        // ★ 2. 아이템 방 지정 (보스방, 시작방 제외하고 랜덤)
+        // ★ 특수 방들을 바깥쪽 막다른 길에 하나씩 이어 붙이기
         // ==========================================
-        bool hasItemRoom = Random.Range(0, 100) < 100; // 30% 확률
+        Vector2Int bossRoomPos = Vector2Int.zero;
         Vector2Int itemRoomPos = new Vector2Int(9999, 9999);
-
-        if (hasItemRoom && roomPositions.Count > 2)
-        {
-            List<Vector2Int> possibleItemRooms = new List<Vector2Int>(roomPositions);
-            possibleItemRooms.Remove(Vector2Int.zero); // 시작방 제외
-            possibleItemRooms.Remove(bossRoomPos);     // 보스방 제외
-
-            if (possibleItemRooms.Count > 0)
-            {
-                itemRoomPos = possibleItemRooms[Random.Range(0, possibleItemRooms.Count)];
-            }
-        }
-
-        // ==========================================
-        // ★ 3. 상점방 지정 (보스, 시작, 아이템방 피해서 50% 확률로 등장)
-        // ==========================================
-        bool hasShopRoom = Random.Range(0, 100) < 100; // 50% 확률
         Vector2Int shopRoomPos = new Vector2Int(9999, 9999);
 
-        if (hasShopRoom && roomPositions.Count > 3)
+        // 1) 보스방: 시작점에서 가장 먼 막다른 길에 추가
+        int maxDist = -1;
+        foreach (Vector2Int pos in potentialDeadEnds)
         {
-            List<Vector2Int> possibleShopRooms = new List<Vector2Int>(roomPositions);
-            possibleShopRooms.Remove(Vector2Int.zero); // 시작방 제외
-            possibleShopRooms.Remove(bossRoomPos);     // 보스방 제외
-            possibleShopRooms.Remove(itemRoomPos);     // 아이템방 제외
+            int dist = Mathf.Abs(pos.x) + Mathf.Abs(pos.y);
+            if (dist > maxDist) { maxDist = dist; bossRoomPos = pos; }
+        }
+        roomPositions.Add(bossRoomPos);
+        potentialDeadEnds.Remove(bossRoomPos);
+        // (보스방 옆에 다른 특수방이 붙어서 문이 2개가 되는 걸 방지)
+        potentialDeadEnds.RemoveAll(p => Vector2Int.Distance(p, bossRoomPos) == 1);
 
-            if (possibleShopRooms.Count > 0)
-            {
-                shopRoomPos = possibleShopRooms[Random.Range(0, possibleShopRooms.Count)];
-            }
+        // 2) 아이템방: 남은 막다른 길 중 하나에 추가 (100% 확률)
+        if (Random.Range(0, 100) < 100 && potentialDeadEnds.Count > 0)
+        {
+            itemRoomPos = potentialDeadEnds[Random.Range(0, potentialDeadEnds.Count)];
+            roomPositions.Add(itemRoomPos);
+            potentialDeadEnds.Remove(itemRoomPos);
+            potentialDeadEnds.RemoveAll(p => Vector2Int.Distance(p, itemRoomPos) == 1);
         }
 
-        // (혹시 아이템방이랑 겹치면 아이템방 위치를 변경)
-        if (bossRoomPos == itemRoomPos) itemRoomPos = roomPositions[1];
+        // 3) 상점방: 남은 막다른 길 중 하나에 추가 (100% 확률)
+        if (Random.Range(0, 100) < 100 && potentialDeadEnds.Count > 0)
+        {
+            shopRoomPos = potentialDeadEnds[Random.Range(0, potentialDeadEnds.Count)];
+            roomPositions.Add(shopRoomPos);
+            potentialDeadEnds.Remove(shopRoomPos);
+        }
+        // ==========================================
 
-        // ★ [새로 추가] 현재 층수에 맞는 데이터 묶음을 가져옵니다.
-        // (배열은 0부터 시작하므로 1층은 인덱스 0번입니다. 에러 방지를 위해 Clamp 사용)
         int floorIndex = Mathf.Clamp(currentFloor - 1, 0, floorSettings.Length - 1);
         FloorData currentFloorData = floorSettings[floorIndex];
 
@@ -167,24 +177,16 @@ public class MapGenerator : MonoBehaviour
                     if (pickupScript != null && randomItemData != null) pickupScript.Setup(randomItemData);
                 }
             }
-            // ★ [추가됨] 상점방 소환!
+            // 2. 상점방 소환
             else if (pos == shopRoomPos)
             {
                 controller.SetAsShopRoom();
-
-                // 상인 NPC를 방 위쪽 가운데에 소환
-                if (merchantPrefab != null)
-                {
-                    Instantiate(merchantPrefab, worldPos + new Vector3(0, 2f, 0), Quaternion.identity);
-                }
-
+                if (merchantPrefab != null) Instantiate(merchantPrefab, worldPos + new Vector3(0, 2f, 0), Quaternion.identity);
                 if (shopItemPrefab != null)
                 {
-                    // 왼쪽엔 체력 판매대 소환 (15원)
                     GameObject healthStand = Instantiate(shopItemPrefab, worldPos + new Vector3(-3f, -1f, 0), Quaternion.identity);
                     healthStand.GetComponent<ShopItem>().SetupHealth(15, shopHealthSprite);
 
-                    // 오른쪽엔 랜덤 아이템 판매대 소환 (15원)
                     if (possibleItems.Length > 0)
                     {
                         GameObject itemStand = Instantiate(shopItemPrefab, worldPos + new Vector3(3f, -1f, 0), Quaternion.identity);
@@ -193,11 +195,10 @@ public class MapGenerator : MonoBehaviour
                     }
                 }
             }
-            // 2. 보스방 소환
+            // 3. 보스방 소환
             else if (pos == bossRoomPos)
             {
                 EnemyData randomBoss = null;
-                // ★ [수정됨] currentFloorData.bosses 를 사용!
                 if (currentFloorData.bosses.Length > 0)
                     randomBoss = currentFloorData.bosses[Random.Range(0, currentFloorData.bosses.Length)];
 
@@ -213,8 +214,7 @@ public class MapGenerator : MonoBehaviour
                     controller.enemiesInRoom.Add(bossScript);
                 }
             }
-            // 3. 일반 몬스터 소환
-            // ★ [수정됨] currentFloorData.enemies 를 사용!
+            // 4. 일반 몬스터 소환
             else if (pos != Vector2Int.zero && enemyPrefab != null && currentFloorData.enemies.Length > 0)
             {
                 int enemyCount = Random.Range(1, 4);
@@ -222,13 +222,9 @@ public class MapGenerator : MonoBehaviour
                 {
                     Vector3 randomOffset = new Vector3(Random.Range(-4f, 4f), Random.Range(-0.5f, 0.5f), 0);
                     GameObject spawnedEnemy = Instantiate(enemyPrefab, worldPos + randomOffset, Quaternion.identity);
-
                     Enemy enemyScript = spawnedEnemy.GetComponent<Enemy>();
-
-                    // ★ [수정됨] currentFloorData.enemies 를 사용!
                     EnemyData randomData = currentFloorData.enemies[Random.Range(0, currentFloorData.enemies.Length)];
                     enemyScript.Setup(randomData);
-
                     enemyScript.currentRoom = controller;
                     controller.enemiesInRoom.Add(enemyScript);
                 }

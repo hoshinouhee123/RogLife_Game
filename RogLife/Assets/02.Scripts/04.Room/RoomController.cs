@@ -38,6 +38,19 @@ public class RoomController : MonoBehaviour
     [Header("상점방 설정")]
     public GameObject shopRoomMarker; // 상점방 마커
 
+    // [변수 선언부 위쪽에 추가]
+    [Header("특수 문 이미지 설정")]
+    public Sprite defaultDoorSprite; // 기본 문 이미지
+    public Sprite bossDoorSprite;    // 보스방 가는 문 이미지 (해골)
+    public Sprite itemDoorSprite;    // 아이템방 가는 문 이미지 (황금)
+    public Sprite shopDoorSprite;    // 상점방 가는 문 이미지 (자물쇠 등)
+
+    [Header("문 SpriteRenderer 연결")]
+    public SpriteRenderer srDoorTop;
+    public SpriteRenderer srDoorBottom;
+    public SpriteRenderer srDoorLeft;
+    public SpriteRenderer srDoorRight;
+
     // ★ [추가됨] 이 방을 플레이어가 직접 밟았는지(가봤는지) 기억하는 변수
     public bool isVisited = false;
 
@@ -64,6 +77,23 @@ public class RoomController : MonoBehaviour
         if (mapIconCenter != null) mapIconCenter.color = new Color(0.3f, 0.3f, 0.3f, 1f);
 
         UnlockDoors();
+
+        // ★ [새로 추가] 이웃 방의 정체를 확인하고 문 이미지를 바꿈!
+        UpdateDoorSprite(srDoorTop, tRoom);
+        UpdateDoorSprite(srDoorBottom, bRoom);
+        UpdateDoorSprite(srDoorLeft, lRoom);
+        UpdateDoorSprite(srDoorRight, rRoom);
+    }
+
+    // ★ [새로 추가] 문 이미지를 바꿔주는 함수
+    private void UpdateDoorSprite(SpriteRenderer sr, RoomController neighbor)
+    {
+        if (sr == null || neighbor == null) return;
+
+        if (neighbor.isBossRoom && bossDoorSprite != null) sr.sprite = bossDoorSprite;
+        else if (neighbor.isItemRoom && itemDoorSprite != null) sr.sprite = itemDoorSprite;
+        else if (neighbor.isShopRoom && shopDoorSprite != null) sr.sprite = shopDoorSprite;
+        else if (defaultDoorSprite != null) sr.sprite = defaultDoorSprite;
     }
 
     // ★ [핵심 추가 기능] 상황에 맞게 통로를 켜주는 마법의 함수
@@ -264,17 +294,25 @@ public class RoomController : MonoBehaviour
     }
 
     // 멈춰있던 보스 몬스터 깨우기 (전투 시작 함수)
+    // ★ 멈춰있던 보스 몬스터 깨우기 (전투 시작 함수)
     private void WakeUpBossAndStartFight()
     {
-        // 컷신, 대화가 다 끝나고 드디어 보스가 깨어날 때 HP바 등장!
-        if (isBossRoom && BossUIManager.Instance != null)
-        {
-            BossUIManager.Instance.ShowHPBar();
-        }
+        bool isBossAlive = false;
 
         foreach (Enemy enemy in enemiesInRoom)
         {
-            if (enemy != null) enemy.WakeUp();
+            if (enemy != null)
+            {
+                enemy.WakeUp();
+                isBossAlive = true; // 살아있는 적이 1마리라도 있으면 체크!
+            }
+        }
+
+        // ★ [핵심] 보스가 살아있을 때만 HP바를 켭니다! 
+        // (컷신 도중 killall로 죽여버렸을 때 빈 체력바가 떠있는 버그 방어)
+        if (isBossRoom && BossUIManager.Instance != null && isBossAlive)
+        {
+            BossUIManager.Instance.ShowHPBar();
         }
     }
 
