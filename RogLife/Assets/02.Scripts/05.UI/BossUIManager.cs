@@ -41,6 +41,8 @@ public class BossUIManager : MonoBehaviour
     private float totalBossMaxHP;
     private float totalBossCurrentHP;
 
+    private bool skipRequested = false;
+
     private void Awake() { if (Instance == null) Instance = this; }
 
     private void Start()
@@ -55,6 +57,16 @@ public class BossUIManager : MonoBehaviour
         originPlayerName = playerNameRect.anchoredPosition;
         originBossImg = bossImageRect.anchoredPosition;
         originBossName = bossNameRect.anchoredPosition;
+    }
+
+    // ★ [새로 추가됨] 마우스 클릭 감지
+    private void Update()
+    {
+        // 컷신이 켜져 있을 때 마우스 왼쪽 버튼(클릭)을 누르면 스킵 요청!
+        if (bgCanvasGroup.gameObject.activeInHierarchy && Input.GetMouseButtonDown(0))
+        {
+            skipRequested = true;
+        }
     }
 
     // ★ [추가됨] 보스전 시작 시 체력바 세팅
@@ -86,6 +98,9 @@ public class BossUIManager : MonoBehaviour
     // 컷신 코루틴 (방어 코드 포함)
     public IEnumerator ShowCutsceneRoutine(EnemyData bossData)
     {
+        // (초기화 및 변수 방어 코드는 기존과 동일)
+        skipRequested = false; // 시작할 때 스킵 초기화
+
         if (appearTime <= 0f) appearTime = 0.4f;
         if (stayTime <= 0f) stayTime = 3.0f;
         if (disappearTime <= 0f) disappearTime = 0.3f;
@@ -118,9 +133,12 @@ public class BossUIManager : MonoBehaviour
 
         yield return null;
 
+        // 연출 1: 등장
         float time = 0f;
         while (time < appearTime)
         {
+            if (skipRequested) break; // ★ 스킵 버튼 눌리면 즉시 탈출!
+
             float dt = Mathf.Min(Time.unscaledDeltaTime, 0.1f); time += dt;
             float t = time / appearTime; float easeOut = 1f - Mathf.Pow(1f - t, 4f);
 
@@ -132,9 +150,14 @@ public class BossUIManager : MonoBehaviour
             yield return null;
         }
 
+        // ★ 스킵 당했다면 더 볼 것 없이 컷신 아예 종료!
+        if (skipRequested) { bgCanvasGroup.gameObject.SetActive(false); yield break; }
+
         time = 0f;
         while (time < stayTime)
         {
+            if (skipRequested) break; // ★ 스킵 탈출
+
             float dt = Mathf.Min(Time.unscaledDeltaTime, 0.1f); time += dt;
             float scale = Mathf.Lerp(1f, 1.1f, time / stayTime);
             playerImageRect.localScale = new Vector3(scale, scale, 1f); playerNameRect.localScale = new Vector3(scale, scale, 1f);
@@ -142,9 +165,13 @@ public class BossUIManager : MonoBehaviour
             yield return null;
         }
 
+        if (skipRequested) { bgCanvasGroup.gameObject.SetActive(false); yield break; }
+
         time = 0f;
         while (time < disappearTime)
         {
+            if (skipRequested) break; // ★ 스킵 탈출
+
             float dt = Mathf.Min(Time.unscaledDeltaTime, 0.1f); time += dt;
             float t = time / disappearTime; float easeIn = t * t * t;
 

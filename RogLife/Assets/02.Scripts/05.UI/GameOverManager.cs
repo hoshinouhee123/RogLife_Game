@@ -99,13 +99,24 @@ public class GameOverManager : MonoBehaviour
         float timer = 0f;
         while (timer < creditsDuration)
         {
+
+            // ★ [추가됨] 엔터키를 누르면 크레딧 스크롤 즉시 종료
+            if (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter)) break;
+
             timer += Time.unscaledDeltaTime;
             creditsTransform.anchoredPosition += new Vector2(0, creditsScrollSpeed * Time.unscaledDeltaTime);
             yield return null;
         }
 
-        // ★ [수정됨] 하드코딩된 2초 대신, 인스펙터에서 설정한 넉넉한 시간만큼 여운을 즐기며 대기!
-        yield return new WaitForSecondsRealtime(waitAfterCredits);
+        timer = 0f;
+        while (timer < waitAfterCredits)
+        {
+            // ★ [추가됨] 여운을 즐기는 중에도 엔터키 누르면 즉시 메인화면으로 이동
+            if (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter)) break;
+
+            timer += Time.unscaledDeltaTime;
+            yield return null;
+        }
 
         Time.timeScale = 1f;
         SceneManager.LoadScene(mainMenuSceneName);

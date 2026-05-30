@@ -253,42 +253,69 @@ public class MapGenerator : MonoBehaviour
     }
 
     //  포탈을 탔을 때 맵을 싹 지우고 새로 짜는 함수!
+    // ★ [수정됨] 이제 코루틴을 부릅니다!
     public void GoToNextStage()
     {
-        // 1. 기존 방들 삭제
-        foreach (var room in spawnedRooms.Values)
+        currentFloor++;
+
+        if (currentFloor > finalFloor)
         {
-            if (room != null) Destroy(room);
+            ShowEnding();
+            return;
         }
+
+        StartCoroutine(NextStageRoutine());
+    }
+
+    // ★ [새로 추가됨] 컷신과 맵 재생성을 묶은 완벽한 코루틴
+    private System.Collections.IEnumerator NextStageRoutine()
+    {
+        // 1. 플레이어 조작 차단 및 시간 정지
+        Time.timeScale = 0f;
+
+        // 2. 층 이동 컷신 (검은 화면) 켜기! 
+        // (UI 매니저가 나타날 때까지 코드가 여기서 기다립니다)
+        if (StageTransitionUI.Instance != null)
+        {
+            yield return StartCoroutine(StageTransitionUI.Instance.ShowTransition(currentFloor));
+        }
+
+        // ==========================================
+        // 3. 화면이 완전히 까매졌으므로 맵을 싹 지우고 새로 생성 (기존 코드와 동일)
+        // ==========================================
+        foreach (var room in spawnedRooms.Values) { if (room != null) Destroy(room); }
         spawnedRooms.Clear();
 
-        // 2. 맵에 남아있는 모든 아이템 싹쓸이 (태그 대신 스크립트로 찾음!)
         ItemPickup[] items = FindObjectsOfType<ItemPickup>();
         foreach (var item in items) Destroy(item.gameObject);
 
-        // 3. 맵에 남아있는 포탈 싹쓸이
         NextStagePortal[] portals = FindObjectsOfType<NextStagePortal>();
         foreach (var portal in portals) Destroy(portal.gameObject);
 
-        // 4. 혹시나 남아있을 몬스터, 총알도 싹쓸이
         Enemy[] enemies = FindObjectsOfType<Enemy>();
         foreach (var enemy in enemies) Destroy(enemy.gameObject);
 
         Bullet[] bullets = FindObjectsOfType<Bullet>();
         foreach (var bullet in bullets) Destroy(bullet.gameObject);
 
-        // 5. 배경 타일맵 지우기
         if (backgroundTilemap != null) backgroundTilemap.ClearAllTiles();
 
-        // 6. 플레이어 위치를 시작방(0,0)으로 즉시 되돌리기
         GameObject player = GameObject.FindGameObjectWithTag("Player");
         if (player != null) player.transform.position = Vector3.zero;
 
-        // 7. RoomManager 카메라 및 좌표 초기화
         if (RoomManager.Instance != null) RoomManager.Instance.ResetRoomCoordinates();
 
-        // 8. 드디어 새 맵 생성!
         GenerateMap();
+        // ==========================================
+
+        // 4. 새 맵 생성이 끝났으니 검은 화면을 걷어냄!
+        if (StageTransitionUI.Instance != null)
+        {
+            yield return StartCoroutine(StageTransitionUI.Instance.HideTransition());
+        }
+
+        // 5. 시간 원상 복구 및 조작 재개
+        Time.timeScale = 1f;
     }
 
     void GenerateBackground(List<Vector2Int> roomPositions)
@@ -326,5 +353,19 @@ public class MapGenerator : MonoBehaviour
                 backgroundTilemap.SetTile(new Vector3Int(x, y, 0), backgroundPattern[tileIndex]);
             }
         }
+    }
+
+    // ==========================================
+    // ★ [새로 추가] 마지막 층(예: 3층)을 클리어했을 때 실행되는 엔딩 함수
+    // ==========================================
+    private void ShowEnding()
+    {
+        // 일단은 콘솔창에 메시지만 띄워둡니다.
+        Debug.Log("게임 클리어! 대망의 엔딩 연출이 시작됩니다!");
+
+        // 나중에 여기에 [해피 엔딩] 업적 달성 코드를 넣거나,
+        // 진엔딩 씬으로 넘어가는 코드를 추가하시면 됩니다!
+
+        // 예시: UnityEngine.SceneManagement.SceneManager.LoadScene("HappyEndingScene");
     }
 }
