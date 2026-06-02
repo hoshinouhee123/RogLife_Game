@@ -19,6 +19,12 @@ public struct DialogueLine
     public bool useGlitch;           // 이 대사에서 글리치 효과를 쓸 것인가?
     public Sprite glitchPortrait;    // 순간적으로 바뀔 기괴한 일러스트
     public string glitchSentence;    // 순간적으로 바뀔 기괴한 텍스트 (예: 살려줘살려줘살려줘)
+
+    // ==========================================
+    // ★ [새로 추가됨] 이 대사가 나올 때 페이드인 될 컷신 일러스트!
+    // ==========================================
+    [Header("전체 화면 일러스트 (층 이동 컷신 등)")]
+    public Sprite fullScreenCG;
 }
 
 // 2. 대화 매니저
@@ -119,6 +125,12 @@ public class DialogueManager : MonoBehaviour
         nameText.text = currentActiveLine.speakerName;
         dialogueText.color = Color.white;
 
+        // ★ [새로 추가됨] 전체 화면 일러스트가 있다면 페이드인!
+        if (currentActiveLine.fullScreenCG != null && StageTransitionUI.Instance != null)
+        {
+            StageTransitionUI.Instance.ShowCG(currentActiveLine.fullScreenCG);
+        }
+
         if (currentActiveLine.characterPortrait != null)
         {
             portraitImage.sprite = currentActiveLine.characterPortrait;
@@ -153,7 +165,7 @@ public class DialogueManager : MonoBehaviour
             // [공포 연출] 글리치 옵션이 켜져 있고, 아직 안 터졌으며, 확률에 당첨되었다면?
             // ==============================================================
             // (테스트용으로 100을 넣어도, hasGlitched 덕분에 딱 1번만 터집니다!)
-            if (line.useGlitch && !hasGlitched && UnityEngine.Random.Range(0, 100) < 2) // 확률은 2~5 정도로 맞춰주세요!
+            if (line.useGlitch && !hasGlitched && UnityEngine.Random.Range(0, 100) < 100) // 확률은 2~5 정도로 맞춰주세요!
             {
                 hasGlitched = true; // 이제 이 문장에선 더 이상 안 터짐!
                 yield return StartCoroutine(GlitchRoutine(line));

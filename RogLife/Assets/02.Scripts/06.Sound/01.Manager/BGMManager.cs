@@ -71,4 +71,13 @@ public class BGMManager : MonoBehaviour
         audioSource.loop = false; // 크레딧 길이에 맞추거나 true로 반복
         audioSource.Play();
     }
+
+    // [BGMManager.cs 기존 함수들 아래에 추가]
+    public void PlayTransitionBGM(AudioClip transitionBgm)
+    {
+        if (audioSource == null || transitionBgm == null) return;
+        audioSource.clip = transitionBgm;
+        audioSource.loop = true;
+        audioSource.Play();
+    }
 }

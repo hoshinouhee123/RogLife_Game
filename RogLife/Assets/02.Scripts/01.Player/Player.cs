@@ -46,6 +46,9 @@ public class Player : MonoBehaviour
 
     public AudioClip heartGetSound; // 띠링! 하는 하트 획득 소리
 
+    // [Player.cs 상단 변수 선언부 쪽에 추가]
+    public bool hasTripleShot = false; // 트리플 샷 획득 여부
+
     // 인스펙터에서 SFX 믹서 그룹을 넣을 빈칸
     public AudioMixerGroup sfxMixerGroup;
 
@@ -112,13 +115,31 @@ public class Player : MonoBehaviour
         }
     }
 
+    // [2. Shoot 함수 덮어쓰기 & SpawnBullet 추가]
     void Shoot(Vector2 dir)
     {
-        // 총알을 쏠 때 효과음 재생
         if (shootSound != null) audioSource.PlayOneShot(shootSound);
 
-        GameObject bullet = Instantiate(bulletPrefab, firePoint.position, Quaternion.identity);
-        bullet.GetComponent<Bullet>().Setup(dir, attackDamage);
+        if (hasTripleShot)
+        {
+            // ★ 트리플 샷: 정면, 좌측 대각선, 우측 대각선으로 3발 쏩니다!
+
+            // 1. 정면
+            SpawnBullet(dir);
+
+            // 2. 왼쪽으로 15도 틀어진 방향 계산 (Quaternion.Euler 사용)
+            Vector2 leftDir = Quaternion.Euler(0, 0, 15f) * dir;
+            SpawnBullet(leftDir);
+
+            // 3. 오른쪽으로 15도 틀어진 방향 계산
+            Vector2 rightDir = Quaternion.Euler(0, 0, -15f) * dir;
+            SpawnBullet(rightDir);
+        }
+        else
+        {
+            // 기본: 1발만 쏨
+            SpawnBullet(dir);
+        }
     }
 
     // 적에게 맞았을 때 호출되는 함수
@@ -210,27 +231,41 @@ public class Player : MonoBehaviour
     }
 
     // ★ [수정됨] 뒤에 개수(count)를 받을 수 있게 추가 (아무것도 안 적으면 기본 1개)
+    // [1. AcquireItem 함수 안쪽 수정]
     public void AcquireItem(ItemData item, int count = 1)
     {
-        // 1. 받은 개수(count)만큼 곱해서 스탯 증가!
         attackDamage += item.addDamage * count;
-
         if (item.addMaxHealth > 0)
         {
             maxHealth += item.addMaxHealth * count;
             currentHealth += item.addMaxHealth * count;
             UpdateHealthUI();
         }
-
         if (item.addMoveSpeed > 0 && playerController != null)
         {
             playerController.moveSpeed += item.addMoveSpeed * count;
         }
 
-        if (itemGetSound != null)
+        // ==========================================
+        // ★ [새로 추가된 부분] 공속 증가 & 트리플 샷 적용
+        // ==========================================
+        if (item.decreaseFireRate != 0)
         {
-            audioSource.PlayOneShot(itemGetSound);
+            // 수학 공식: 마이너스를 빼면 더하기가 됩니다! (예: -(-0.2) = +0.2초 늘어남)
+            fireRate -= (item.decreaseFireRate * count);
+
+            // 공속이 너무 빨라져서 렉 걸리는 것만 방지
+            if (fireRate < 0.1f) fireRate = 0.1f;
         }
+
+        // 트리플 샷 아이템을 먹었다면 스위치 ON
+        if (item.isTripleShot)
+        {
+            hasTripleShot = true;
+        }
+        // ==========================================
+
+        if (itemGetSound != null) audioSource.PlayOneShot(itemGetSound);
     }
 
     // ★ [수정됨] 코인 획득 시 최대 99개 제한
@@ -302,5 +337,12 @@ public class Player : MonoBehaviour
     private void UpdateKeyUI()
     {
         if (keyText != null) keyText.text = keyCount.ToString("D2");
+    }
+
+    // 코드가 너무 길어지는 걸 막기 위해 총알 생성 부분을 따로 함수로 뺐습니다.
+    private void SpawnBullet(Vector2 dir)
+    {
+        GameObject bullet = Instantiate(bulletPrefab, firePoint.position, Quaternion.identity);
+        bullet.GetComponent<Bullet>().Setup(dir, attackDamage);
     }
 }

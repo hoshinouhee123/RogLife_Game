@@ -7,10 +7,10 @@ public class StageTransitionUI : MonoBehaviour
 {
     public static StageTransitionUI Instance;
 
-    public CanvasGroup canvasGroup;
-    public TextMeshProUGUI stageText;
-
-    private bool skipRequested = false;
+    public CanvasGroup blackBgCanvasGroup; // 검은 화면
+    public CanvasGroup cgCanvasGroup;      // 일러스트(CG) 캔버스 그룹
+    public Image cgImage;                  // 일러스트 이미지
+    public TextMeshProUGUI stageText;                 // 2층, 3층 글씨
 
     private void Awake()
     {
@@ -19,60 +19,75 @@ public class StageTransitionUI : MonoBehaviour
 
     private void Start()
     {
-        canvasGroup.gameObject.SetActive(false);
+        blackBgCanvasGroup.alpha = 0f;
+        blackBgCanvasGroup.gameObject.SetActive(false);
+
+        cgCanvasGroup.alpha = 0f;
+        cgCanvasGroup.gameObject.SetActive(false);
+
+        stageText.gameObject.SetActive(false);
     }
 
-    private void Update()
+    // 1. 검은 화면으로 덮기
+    public IEnumerator FadeToBlack()
     {
-        // 화면이 떠 있을 때 클릭하면 스킵!
-        if (canvasGroup.gameObject.activeInHierarchy && Input.GetMouseButtonDown(0))
+        blackBgCanvasGroup.gameObject.SetActive(true);
+        float timer = 0f;
+        while (timer < 0.5f)
         {
-            skipRequested = true;
+            timer += Time.unscaledDeltaTime;
+            blackBgCanvasGroup.alpha = Mathf.Lerp(0f, 1f, timer / 0.5f);
+            yield return null;
         }
     }
 
-    // MapGenerator가 맵을 지우기 '전'에 부름
-    public IEnumerator ShowTransition(int floorNumber)
+    // 2. 일러스트(CG) 스르륵 띄우기 (DialogueManager가 부를 함수)
+    public void ShowCG(Sprite cgSprite)
     {
-        skipRequested = false;
+        if (cgSprite == null) return;
+        cgImage.sprite = cgSprite;
+        cgCanvasGroup.gameObject.SetActive(true);
+        StopAllCoroutines();
+        StartCoroutine(FadeCGRoutine(1f)); // 1(보임)로 페이드
+    }
+
+    // 3. 일러스트 스르륵 끄기
+    public void HideCG()
+    {
+        StopAllCoroutines();
+        StartCoroutine(FadeCGRoutine(0f)); // 0(투명)으로 페이드
+    }
+
+    private IEnumerator FadeCGRoutine(float targetAlpha)
+    {
+        float startAlpha = cgCanvasGroup.alpha;
+        float timer = 0f;
+        while (timer < 1.0f) // 1초 동안 부드럽게
+        {
+            timer += Time.unscaledDeltaTime;
+            cgCanvasGroup.alpha = Mathf.Lerp(startAlpha, targetAlpha, timer / 1.0f);
+            yield return null;
+        }
+        if (targetAlpha == 0f) cgCanvasGroup.gameObject.SetActive(false);
+    }
+
+    // 4. "X층" 글씨 띄우고 검은 화면 걷어내기
+    public IEnumerator ShowFloorTextAndFadeOut(int floorNumber)
+    {
         stageText.text = floorNumber + "층";
+        stageText.gameObject.SetActive(true);
 
-        canvasGroup.alpha = 0f;
-        canvasGroup.gameObject.SetActive(true);
+        yield return new WaitForSecondsRealtime(2.0f); // 2초간 층 이름 보여주기
+        stageText.gameObject.SetActive(false);
 
-        // 1. 검은 화면이 스르륵 나타남 (0.5초)
-        float timer = 0f;
-        while (timer < 0.5f)
-        {
-            if (skipRequested) break;
-            timer += Time.unscaledDeltaTime;
-            canvasGroup.alpha = Mathf.Lerp(0f, 1f, timer / 0.5f);
-            yield return null;
-        }
-        canvasGroup.alpha = 1f;
-
-        // 2. 검은 화면 대기 (2.5초간 대기, 클릭 시 즉시 맵 넘기기)
-        timer = 0f;
-        while (timer < 2.5f)
-        {
-            if (skipRequested) break;
-            timer += Time.unscaledDeltaTime;
-            yield return null;
-        }
-    }
-
-    // MapGenerator가 맵을 다 만든 '후'에 부름
-    public IEnumerator HideTransition()
-    {
-        // 3. 검은 화면이 스르륵 걷힘 (0.5초)
+        // 검은 화면 걷히기
         float timer = 0f;
         while (timer < 0.5f)
         {
             timer += Time.unscaledDeltaTime;
-            canvasGroup.alpha = Mathf.Lerp(1f, 0f, timer / 0.5f);
+            blackBgCanvasGroup.alpha = Mathf.Lerp(1f, 0f, timer / 0.5f);
             yield return null;
         }
-
-        canvasGroup.gameObject.SetActive(false);
+        blackBgCanvasGroup.gameObject.SetActive(false);
     }
 }

@@ -20,6 +20,9 @@ public class Enemy : MonoBehaviour
     private float stateTimer = 0f;
     private Vector2 dashDirection;
 
+    // ★ [새로 추가된 자물쇠 변수!] 한 번 분열했는지 기억합니다.
+    private bool hasSplit = false;
+
     [Header("드랍 설정")]
     public GameObject coinPrefab;       // 떨어뜨릴 코인 프리팹
     [Range(0, 100)]
@@ -267,12 +270,13 @@ public class Enemy : MonoBehaviour
 
     public void TakeDamage(float damageAmount)
     {
-        // ★ [핵심] 오버킬(남은 체력보다 더 큰 데미지) 방지를 위해 진짜 들어간 데미지만 계산
+        // ★ [핵심 방어 1] 이미 죽었거나 분열 중이면 추가 데미지 무시! (다단히트 버그 차단)
+        if (currentHealth <= 0 || hasSplit) return;
+
         float actualDamage = Mathf.Min(damageAmount, currentHealth);
         currentHealth -= actualDamage;
         PlaySoundWithMixer(enemyData.hitSound);
 
-        // ★ [추가됨] 보스방에 있는 적(보스와 분신들)이 맞으면 통합 보스 체력바 깎기!
         if (currentRoom != null && currentRoom.isBossRoom)
         {
             if (BossUIManager.Instance != null) BossUIManager.Instance.ApplyBossDamage(actualDamage);
@@ -284,10 +288,12 @@ public class Enemy : MonoBehaviour
             return;
         }
 
-        if (enemyData.isDashSplittingBoss && splitLevel < 2)
+        // ★ [핵심 방어 2] hasSplit이 false일 때만 분열 허용
+        if (enemyData.isDashSplittingBoss && splitLevel < 2 && !hasSplit)
         {
             if (currentHealth <= myMaxHealth / 2f)
             {
+                hasSplit = true; // 자물쇠 쾅! (이후 들어오는 총알은 무시됨)
                 Split();
             }
         }
@@ -302,7 +308,7 @@ public class Enemy : MonoBehaviour
 
             Enemy splitScript = splitBoss.GetComponent<Enemy>();
 
-            // ★ [수정됨] 분신이 복제될 때 뇌(AI)를 완벽하게 초기화해줍니다!
+            // 스탯 및 상태 초기화
             splitScript.splitLevel = this.splitLevel + 1;
             splitScript.myMaxHealth = this.myMaxHealth / 2f;
             splitScript.currentHealth = splitScript.myMaxHealth;
@@ -310,13 +316,13 @@ public class Enemy : MonoBehaviour
             splitScript.playerTransform = this.playerTransform;
             splitScript.isAwake = true;
 
-            // 전 상태(죽기 직전 기절 등)를 무시하고 무조건 추격 상태로 시작
+            // ★ [핵심 방어 3] 새로 태어난 꼬마 보스는 다시 분열할 수 있게 자물쇠를 풀어줌!
+            splitScript.hasSplit = false;
+
             splitScript.bossState = BossState.Idle;
             splitScript.stateTimer = 1f;
 
-            // 물리 속도도 초기화 (튕겨나가는 버그 방지)
             splitBoss.GetComponent<Rigidbody2D>().linearVelocity = Vector2.zero;
-
             splitBoss.transform.localScale = this.transform.localScale * 0.6f;
 
             if (currentRoom != null)
@@ -325,7 +331,7 @@ public class Enemy : MonoBehaviour
             }
         }
 
-        Destroy(gameObject);
+        Destroy(gameObject); // 원본은 파괴
     }
 
     // ★ [수정됨] 죽을 때 분열하는 로직 추가

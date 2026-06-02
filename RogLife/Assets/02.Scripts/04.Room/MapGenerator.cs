@@ -51,6 +51,16 @@ public class MapGenerator : MonoBehaviour
         public AudioClip floorBgm;              // 이 층의 BGM
         public Sprite roomFloorSprite;          // 방 안쪽 바닥/벽 이미지
         public TileBase[] backgroundPattern = new TileBase[16]; // 맵 바깥쪽 배경 타일 (16개)
+
+        // ==========================================
+        // ★ [새로 추가된 연출 데이터들!]
+        // ==========================================
+        [Header("1. 암전 컷신 연출")]
+        public AudioClip transitionBgm;            // 어둠 속에서 나올 컷신 전용 브금
+        public DialogueLine[] transitionDialogues; // 어둠 속 일러스트와 함께할 대화
+
+        [Header("2. 맵 진입 후 독백")]
+        public DialogueLine[] floorStartDialogues; // 화면 밝아진 후 맵 위에 서서 하는 독백
     }
 
     [Header("스테이지(층) 진행 설정")]
@@ -73,6 +83,22 @@ public class MapGenerator : MonoBehaviour
     void Start()
     {
         GenerateMap();
+
+        // ★ [1층 시작 연출] 1층은 포탈을 안 타므로 Start에서 세팅합니다.
+        int floorIndex = Mathf.Clamp(currentFloor - 1, 0, floorSettings.Length - 1);
+        FloorData currentData = floorSettings[floorIndex];
+
+        if (BGMManager.Instance != null && currentData.floorBgm != null)
+            BGMManager.Instance.PlayStageBGM(currentData.floorBgm);
+
+        // 1층 시작 독백이 있다면?
+        if (currentData.floorStartDialogues != null && currentData.floorStartDialogues.Length > 0)
+        {
+            Time.timeScale = 0f;
+            DialogueManager.instance.onDialogueEndCallback = () => { Time.timeScale = 1f; };
+            DialogueManager.instance.StartDialogue(currentData.floorStartDialogues);
+        }
+        else { Time.timeScale = 1f; }
     }
 
     void GenerateMap()
@@ -83,11 +109,7 @@ public class MapGenerator : MonoBehaviour
         int floorIndex = Mathf.Clamp(currentFloor - 1, 0, floorSettings.Length - 1);
         FloorData currentFloorData = floorSettings[floorIndex];
 
-        // ★ [추가됨] 맵 생성을 시작할 때, 현재 층의 BGM을 틀어줍니다!
-        if (BGMManager.Instance != null && currentFloorData.floorBgm != null)
-        {
-            BGMManager.Instance.PlayStageBGM(currentFloorData.floorBgm);
-        }
+       
 
         // 현재 층에 설정된 방 개수를 가져옴
         int currentMaxRooms = currentFloorData.maxRooms;
@@ -299,53 +321,76 @@ public class MapGenerator : MonoBehaviour
     }
 
     // ★ [새로 추가됨] 컷신과 맵 재생성을 묶은 완벽한 코루틴
+    // ==========================================
+    // ★ [완벽한 순서로 제어되는 층 이동 코루틴!]
+    // ==========================================
     private System.Collections.IEnumerator NextStageRoutine()
     {
-        // 1. 플레이어 조작 차단 및 시간 정지
         Time.timeScale = 0f;
+        int floorIndex = Mathf.Clamp(currentFloor - 1, 0, floorSettings.Length - 1);
+        FloorData currentData = floorSettings[floorIndex];
 
-        // 2. 층 이동 컷신 (검은 화면) 켜기! 
-        // (UI 매니저가 나타날 때까지 코드가 여기서 기다립니다)
+        // 1. 컷신 브금 재생!
+        if (BGMManager.Instance != null && currentData.transitionBgm != null)
+            BGMManager.Instance.PlayTransitionBGM(currentData.transitionBgm);
+
+        // 2. 화면 까맣게 암전
         if (StageTransitionUI.Instance != null)
-        {
-            yield return StartCoroutine(StageTransitionUI.Instance.ShowTransition(currentFloor));
-        }
+            yield return StartCoroutine(StageTransitionUI.Instance.FadeToBlack());
 
-        // ==========================================
-        // 3. 화면이 완전히 까매졌으므로 맵을 싹 지우고 새로 생성 (기존 코드와 동일)
-        // ==========================================
+        // 3. 화면 가려진 동안 기존 맵 지우고 새 맵 생성
         foreach (var room in spawnedRooms.Values) { if (room != null) Destroy(room); }
         spawnedRooms.Clear();
-
-        ItemPickup[] items = FindObjectsOfType<ItemPickup>();
-        foreach (var item in items) Destroy(item.gameObject);
-
-        NextStagePortal[] portals = FindObjectsOfType<NextStagePortal>();
-        foreach (var portal in portals) Destroy(portal.gameObject);
-
-        Enemy[] enemies = FindObjectsOfType<Enemy>();
-        foreach (var enemy in enemies) Destroy(enemy.gameObject);
-
-        Bullet[] bullets = FindObjectsOfType<Bullet>();
-        foreach (var bullet in bullets) Destroy(bullet.gameObject);
+        ItemPickup[] items = FindObjectsOfType<ItemPickup>(); foreach (var item in items) Destroy(item.gameObject);
+        NextStagePortal[] portals = FindObjectsOfType<NextStagePortal>(); foreach (var portal in portals) Destroy(portal.gameObject);
+        Enemy[] enemies = FindObjectsOfType<Enemy>(); foreach (var enemy in enemies) Destroy(enemy.gameObject);
+        Bullet[] bullets = FindObjectsOfType<Bullet>(); foreach (var bullet in bullets) Destroy(bullet.gameObject);
 
         if (backgroundTilemap != null) backgroundTilemap.ClearAllTiles();
-
         GameObject player = GameObject.FindGameObjectWithTag("Player");
         if (player != null) player.transform.position = Vector3.zero;
-
         if (RoomManager.Instance != null) RoomManager.Instance.ResetRoomCoordinates();
 
-        GenerateMap();
-        // ==========================================
+        GenerateMap(); // 맵 생성 완료! (하지만 화면은 아직 까만 상태)
 
-        // 4. 새 맵 생성이 끝났으니 검은 화면을 걷어냄!
-        if (StageTransitionUI.Instance != null)
+        // 4. 암전 상태 컷신 대화 (일러스트 띄우기)
+        DialogueLine[] transitionDialogues = currentData.transitionDialogues;
+        if (transitionDialogues != null && transitionDialogues.Length > 0)
         {
-            yield return StartCoroutine(StageTransitionUI.Instance.HideTransition());
+            bool isCutsceneFinished = false;
+            DialogueManager.instance.onDialogueEndCallback = () =>
+            {
+                if (StageTransitionUI.Instance != null) StageTransitionUI.Instance.HideCG();
+                isCutsceneFinished = true;
+            };
+            DialogueManager.instance.StartDialogue(transitionDialogues);
+
+            while (!isCutsceneFinished) yield return null;
         }
 
-        // 5. 시간 원상 복구 및 조작 재개
+        // 5. "X층" 글씨 띄우고 검은 화면 스르륵 걷어내기
+        if (StageTransitionUI.Instance != null)
+            yield return StartCoroutine(StageTransitionUI.Instance.ShowFloorTextAndFadeOut(currentFloor));
+
+        // 6. 화면 밝아진 직후! 맵 전용 BGM으로 교체!
+        if (BGMManager.Instance != null && currentData.floorBgm != null)
+            BGMManager.Instance.PlayStageBGM(currentData.floorBgm);
+
+        // 7. 맵 위에 덩그러니 선 플레이어의 독백 대화 시작
+        DialogueLine[] startDialogues = currentData.floorStartDialogues;
+        if (startDialogues != null && startDialogues.Length > 0)
+        {
+            bool isStartDialogueFinished = false;
+            DialogueManager.instance.onDialogueEndCallback = () =>
+            {
+                isStartDialogueFinished = true;
+            };
+            DialogueManager.instance.StartDialogue(startDialogues);
+
+            while (!isStartDialogueFinished) yield return null; // 독백 끝날 때까지 게임 정지 유지
+        }
+
+        // 8. 모든 연출 종료, 시간 원상 복구 및 게임 시작!
         Time.timeScale = 1f;
     }
 
