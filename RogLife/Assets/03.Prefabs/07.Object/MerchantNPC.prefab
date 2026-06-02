@@ -152,26 +152,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f958a33462843bd48b88155bac8ade35, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::InteractableObject
-  dialogueLines:
-  - speakerName: "\uC0C1\uC810 \uC8FC\uC778"
-    characterPortrait: {fileID: 21300000, guid: b56c999bfac862e4ca681ac588d46722, type: 3}
-    sentence: "\uB0B4 \uC0C1\uC810\uC5D0 \uC628 \uAC78 \uD658\uC601\uD574!"
-    useGlitch: 0
-    glitchPortrait: {fileID: 0}
-    glitchSentence: 
-  - speakerName: "\uC0C1\uC810 \uC8FC\uC778"
-    characterPortrait: {fileID: 21300000, guid: b56c999bfac862e4ca681ac588d46722, type: 3}
-    sentence: "\uC6D0\uD558\uB294 \uBB3C\uAC74\uC774 \uC788\uC73C\uBA74 \uB9D8\uAECF
-      \uC0AC\uAC00~ \uBB3C\uB860, \uD560\uC778\uC740 \uC548\uD574\uC904\uAC70\uC57C."
-    useGlitch: 1
-    glitchPortrait: {fileID: 21300000, guid: 15dc6970d3dca904da53520d55f51e3d, type: 3}
-    glitchSentence: "\uB3C4\uB9DD\uCCD0..........................."
-  - speakerName: "\uC0C1\uC810 \uC8FC\uC778"
-    characterPortrait: {fileID: 21300000, guid: b56c999bfac862e4ca681ac588d46722, type: 3}
-    sentence: "\uBB50? \uB0B4 \uC774\uB984\uC774 \uBB50\uB0D0\uACE0? \uAE00\uC384~"
-    useGlitch: 0
-    glitchPortrait: {fileID: 0}
-    glitchSentence: 
+  dialogueLines: []
   nextSceneName: 
 --- !u!114 &7520691503049548845
 MonoBehaviour:
@@ -185,4 +166,63 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0d5f00a789022aa4e987b4ee1ad87218, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MerchantNPC
-  floorDialogues: []
+  floorDialogues:
+  - floorName: "1\uCE35"
+    dialogues:
+    - speakerName: "\uC0C1\uC810 \uC8FC\uC778"
+      characterPortrait: {fileID: 21300000, guid: b56c999bfac862e4ca681ac588d46722, type: 3}
+      sentence: "\uB0B4 \uC0C1\uC810\uC5D0 \uC628 \uAC78 \uD658\uC601\uD574!"
+      useGlitch: 0
+      glitchPortrait: {fileID: 0}
+      glitchSentence: 
+    - speakerName: "\uC0C1\uC810 \uC8FC\uC778"
+      characterPortrait: {fileID: 21300000, guid: b56c999bfac862e4ca681ac588d46722, type: 3}
+      sentence: "\uC6D0\uD558\uB294 \uBB3C\uAC74\uC774 \uC788\uC73C\uBA74 \uB9D8\uAECF
+        \uC0AC\uAC00~ \uBB3C\uB860, \uD560\uC778\uC740 \uC548\uD574\uC904\uAC70\uC57C."
+      useGlitch: 1
+      glitchPortrait: {fileID: 21300000, guid: 15dc6970d3dca904da53520d55f51e3d, type: 3}
+      glitchSentence: "\uB3C4\uB9DD\uCCD0..........................."
+    - speakerName: "\uC0C1\uC810 \uC8FC\uC778"
+      characterPortrait: {fileID: 21300000, guid: b56c999bfac862e4ca681ac588d46722, type: 3}
+      sentence: "\uBB50? \uB0B4 \uC774\uB984\uC774 \uBB50\uB0D0\uACE0? \uAE00\uC384~"
+      useGlitch: 0
+      glitchPortrait: {fileID: 0}
+      glitchSentence: 
+    merchantSprite: {fileID: 21300000, guid: b2e6d43c9292dae4e817f1ae527c6a77, type: 3}
+  - floorName: "2\uCE35"
+    dialogues:
+    - speakerName: "\uC0C1\uC810 \uC8FC\uC778"
+      characterPortrait: {fileID: 21300000, guid: b56c999bfac862e4ca681ac588d46722, type: 3}
+      sentence: "\uC5B4\uC11C\uC640~"
+      useGlitch: 0
+      glitchPortrait: {fileID: 0}
+      glitchSentence: 
+    - speakerName: "\uC0C1\uC810 \uC8FC\uC778"
+      characterPortrait: {fileID: 21300000, guid: b56c999bfac862e4ca681ac588d46722, type: 3}
+      sentence: "\uBB3C\uAC74\uC740 \uB9CE\uC774 \uC788\uC73C\uB2C8 \uCC9C\uCC9C\uD788
+        \uB458\uB7EC\uBCF4\uACE0 \uAC00\uB77C\uACE0~"
+      useGlitch: 1
+      glitchPortrait: {fileID: 21300000, guid: 15dc6970d3dca904da53520d55f51e3d, type: 3}
+      glitchSentence: "\uB3C4\uB9DD\uCCD0\uB3C4\uB9DD\uCCD0\uB3C4\uB9DD\uCCD0\uB3C4\uB9DD\uCCD0\uB3C4\uB9DD\uCCD0\uB3C4\uB9DD\uCCD0\uB3C4\uB9DD\uCCD0\uB3C4\uB9DD\uCCD0\uB3C4\uB9DD\uCCD0\uB3C4\uB9DD\uCCD0\uB3C4\uB9DD\uCCD0\uB3C4\uB9DD\uCCD0\uB3C4\uB9DD\uCCD0\uB3C4\uB9DD\uCCD0\uB3C4\uB9DD\uCCD0\uB3C4\uB9DD\uCCD0"
+    merchantSprite: {fileID: 21300000, guid: b2e6d43c9292dae4e817f1ae527c6a77, type: 3}
+  - floorName: "3\uCE35"
+    dialogues:
+    - speakerName: "\uC0C1\uC810 \uC8FC\uC778"
+      characterPortrait: {fileID: 21300000, guid: 15dc6970d3dca904da53520d55f51e3d, type: 3}
+      sentence: .....
+      useGlitch: 0
+      glitchPortrait: {fileID: 0}
+      glitchSentence: 
+    - speakerName: "\uC0C1\uC810 \uC8FC\uC778"
+      characterPortrait: {fileID: 21300000, guid: 15dc6970d3dca904da53520d55f51e3d, type: 3}
+      sentence: .....
+      useGlitch: 0
+      glitchPortrait: {fileID: 21300000, guid: 15dc6970d3dca904da53520d55f51e3d, type: 3}
+      glitchSentence: "\uB3C4\uB9DD\uCCD0\uB3C4\uB9DD\uCCD0\uB3C4\uB9DD\uCCD0\uB3C4\uB9DD\uCCD0\uB3C4\uB9DD\uCCD0\uB3C4\uB9DD\uCCD0\uB3C4\uB9DD\uCCD0\uB3C4\uB9DD\uCCD0\uB3C4\uB9DD\uCCD0\uB3C4\uB9DD\uCCD0\uB3C4\uB9DD\uCCD0\uB3C4\uB9DD\uCCD0\uB3C4\uB9DD\uCCD0\uB3C4\uB9DD\uCCD0\uB3C4\uB9DD\uCCD0\uB3C4\uB9DD\uCCD0"
+    - speakerName: "\uC0C1\uC810 \uC8FC\uC778"
+      characterPortrait: {fileID: 21300000, guid: 15dc6970d3dca904da53520d55f51e3d, type: 3}
+      sentence: .....
+      useGlitch: 0
+      glitchPortrait: {fileID: 21300000, guid: 15dc6970d3dca904da53520d55f51e3d, type: 3}
+      glitchSentence: "\uB3C4\uB9DD\uCCD0\uB3C4\uB9DD\uCCD0\uB3C4\uB9DD\uCCD0\uB3C4\uB9DD\uCCD0\uB3C4\uB9DD\uCCD0\uB3C4\uB9DD\uCCD0\uB3C4\uB9DD\uCCD0\uB3C4\uB9DD\uCCD0\uB3C4\uB9DD\uCCD0\uB3C4\uB9DD\uCCD0\uB3C4\uB9DD\uCCD0\uB3C4\uB9DD\uCCD0\uB3C4\uB9DD\uCCD0\uB3C4\uB9DD\uCCD0\uB3C4\uB9DD\uCCD0\uB3C4\uB9DD\uCCD0"
+    merchantSprite: {fileID: 21300000, guid: 565641c941a901f4e8c9cfa507da6957, type: 3}
