@@ -58,6 +58,10 @@ public class RoomController : MonoBehaviour
     public GameObject dropKeyPrefab;
     public GameObject dropHeartPrefab;
 
+    // [RoomController.cs 상단 변수 추가]
+    [Header("방 배경 이미지")]
+    public SpriteRenderer roomBgRenderer; // 방 안쪽 바닥/벽을 담당하는 렌더러
+
     // ★ [추가됨] 이 방을 플레이어가 직접 밟았는지(가봤는지) 기억하는 변수
     public bool isVisited = false;
 
@@ -378,5 +382,12 @@ public class RoomController : MonoBehaviour
         if (shopRoomMarker != null) shopRoomMarker.SetActive(true);
     }
 
-
+    // ★ [새로 추가된 함수]
+    public void ChangeRoomBackground(Sprite newSprite)
+    {
+        if (roomBgRenderer != null && newSprite != null)
+        {
+            roomBgRenderer.sprite = newSprite;
+        }
+    }
 }

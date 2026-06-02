@@ -10,7 +10,7 @@ public class BGMManager : MonoBehaviour
     public AudioMixerGroup bgmMixerGroup; // BGM용 믹서 그룹 넣을 곳
 
     [Header("BGM 파일")]
-    public AudioClip stageBgm;      // 평상시 던전 BGM
+    
     public AudioClip bossClearBgm;  // 보스 잡았을 때 나오는 승리 BGM
 
     [Header("엔딩 BGM")]
@@ -19,26 +19,29 @@ public class BGMManager : MonoBehaviour
     private void Awake()
     {
         if (Instance == null) Instance = this;
-    }
 
-    private void Start()
-    {
-        // 내 몸에 오디오 소스가 없으면 자동으로 달아주기
-        if (audioSource == null) audioSource = gameObject.AddComponent<AudioSource>();
+        // ==========================================
+        // ★ [Start에 있던 걸 Awake로 이사 옴!]
+        // 맵 생성기(Start)가 명령을 내리기 전에, 스피커를 미리 완벽하게 세팅해 둡니다.
+        // ==========================================
+        if (audioSource == null)
+            audioSource = gameObject.AddComponent<AudioSource>();
 
-        // 믹서 그룹 연결
-        if (bgmMixerGroup != null) audioSource.outputAudioMixerGroup = bgmMixerGroup;
-
-        // 게임 시작 시 일반 던전 브금 틀기
-        PlayStageBGM();
+        if (bgmMixerGroup != null)
+            audioSource.outputAudioMixerGroup = bgmMixerGroup;
     }
 
     // 1. 일반 브금 재생
-    public void PlayStageBGM()
+    // ★ [수정됨] 맵 생성기에서 넘어온 브금을 틀어줍니다.
+    public void PlayStageBGM(AudioClip newBgm)
     {
-        if (audioSource == null || stageBgm == null) return;
-        audioSource.clip = stageBgm;
-        audioSource.loop = true; // 무한 반복
+        if (audioSource == null || newBgm == null) return;
+
+        // 이미 그 노래가 재생 중이면 다시 처음부터 틀지 않음 (최적화)
+        if (audioSource.clip == newBgm && audioSource.isPlaying) return;
+
+        audioSource.clip = newBgm;
+        audioSource.loop = true;
         audioSource.Play();
     }
 

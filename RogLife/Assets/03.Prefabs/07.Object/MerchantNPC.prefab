@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 839326836003358723}
   - component: {fileID: 1006964514950694067}
   - component: {fileID: 257941605417916967}
+  - component: {fileID: 7520691503049548845}
   m_Layer: 0
   m_Name: MerchantNPC
   m_TagString: Untagged
@@ -155,11 +156,33 @@ MonoBehaviour:
   - speakerName: "\uC0C1\uC810 \uC8FC\uC778"
     characterPortrait: {fileID: 21300000, guid: b56c999bfac862e4ca681ac588d46722, type: 3}
     sentence: "\uB0B4 \uC0C1\uC810\uC5D0 \uC628 \uAC78 \uD658\uC601\uD574!"
+    useGlitch: 0
+    glitchPortrait: {fileID: 0}
+    glitchSentence: 
   - speakerName: "\uC0C1\uC810 \uC8FC\uC778"
     characterPortrait: {fileID: 21300000, guid: b56c999bfac862e4ca681ac588d46722, type: 3}
     sentence: "\uC6D0\uD558\uB294 \uBB3C\uAC74\uC774 \uC788\uC73C\uBA74 \uB9D8\uAECF
       \uC0AC\uAC00~ \uBB3C\uB860, \uD560\uC778\uC740 \uC548\uD574\uC904\uAC70\uC57C."
+    useGlitch: 1
+    glitchPortrait: {fileID: 21300000, guid: 15dc6970d3dca904da53520d55f51e3d, type: 3}
+    glitchSentence: "\uB3C4\uB9DD\uCCD0..........................."
   - speakerName: "\uC0C1\uC810 \uC8FC\uC778"
     characterPortrait: {fileID: 21300000, guid: b56c999bfac862e4ca681ac588d46722, type: 3}
     sentence: "\uBB50? \uB0B4 \uC774\uB984\uC774 \uBB50\uB0D0\uACE0? \uAE00\uC384~"
+    useGlitch: 0
+    glitchPortrait: {fileID: 0}
+    glitchSentence: 
   nextSceneName: 
+--- !u!114 &7520691503049548845
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9052034271783664804}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0d5f00a789022aa4e987b4ee1ad87218, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MerchantNPC
+  floorDialogues: []

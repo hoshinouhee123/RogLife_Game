@@ -132,14 +132,6 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 823737109}
     - target: {fileID: 4711366775569879159, guid: 2bcdb0c47757a8049a9785bc9a901f80, type: 3}
-      propertyPath: darkOverlay
-      value: 
-      objectReference: {fileID: 1582467212}
-    - target: {fileID: 4711366775569879159, guid: 2bcdb0c47757a8049a9785bc9a901f80, type: 3}
-      propertyPath: glitchSound
-      value: 
-      objectReference: {fileID: 8300000, guid: ebf79b95e44b68d44adf9f5b0f32157e, type: 3}
-    - target: {fileID: 4711366775569879159, guid: 2bcdb0c47757a8049a9785bc9a901f80, type: 3}
       propertyPath: dialogueText
       value: 
       objectReference: {fileID: 1191381922}
@@ -147,10 +139,6 @@ PrefabInstance:
       propertyPath: dialoguePanel
       value: 
       objectReference: {fileID: 214594438}
-    - target: {fileID: 4711366775569879159, guid: 2bcdb0c47757a8049a9785bc9a901f80, type: 3}
-      propertyPath: glitchOverlay
-      value: 
-      objectReference: {fileID: 831075692}
     - target: {fileID: 4711366775569879159, guid: 2bcdb0c47757a8049a9785bc9a901f80, type: 3}
       propertyPath: portraitImage
       value: 
@@ -1099,8 +1087,6 @@ RectTransform:
   - {fileID: 1009452952}
   - {fileID: 1785775489}
   - {fileID: 1832379444}
-  - {fileID: 1582467213}
-  - {fileID: 831075693}
   - {fileID: 2132526773}
   - {fileID: 24432226}
   m_Father: {fileID: 0}
@@ -1328,9 +1314,6 @@ MonoBehaviour:
     characterPortrait: {fileID: 21300000, guid: 39918550647d55444bbc71b6cffad1e0, type: 3}
     sentence: "(\uB300\uCDA9 \uB300\uC0AC\uB97C \uB123\uC5B4\uC57C\uD560\uAC83 \uAC19\uC9C0\uB9CC
       \uC0DD\uAC01\uC774 \uC548\uB098\uC11C \uC4F0\uB294 \uB300\uC0AC)"
-    useGlitch: 0
-    glitchPortrait: {fileID: 0}
-    glitchSentence: 
   triggerOnlyOnce: 1
 --- !u!4 &333136426
 Transform:
@@ -3058,94 +3041,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.TextMeshPro::TMPro.TextMeshProUGUI
---- !u!1 &831075692
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 831075693}
-  - component: {fileID: 831075696}
-  - component: {fileID: 831075695}
-  - component: {fileID: 831075694}
-  m_Layer: 5
-  m_Name: GlitchOverlay
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 0
---- !u!224 &831075693
-RectTransform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 831075692}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 237975012}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
-  m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &831075694
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 831075692}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2c93b97d901ce9e4b9857582767345a8, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::ProceduralGlitch
-  textureWidth: 256
-  textureHeight: 144
-  fps: 30
---- !u!114 &831075695
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 831075692}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1344c3c82d62a2a41a3576d8abb8e3ea, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.RawImage
-  m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 0.47058824}
-  m_RaycastTarget: 0
-  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
-  m_Maskable: 1
-  m_OnCullStateChanged:
-    m_PersistentCalls:
-      m_Calls: []
-  m_Texture: {fileID: 0}
-  m_UVRect:
-    serializedVersion: 2
-    x: 0
-    y: 0
-    width: 1
-    height: 1
---- !u!222 &831075696
-CanvasRenderer:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 831075692}
-  m_CullTransparentMesh: 1
 --- !u!1 &851868668
 GameObject:
   m_ObjectHideFlags: 0
@@ -4960,81 +4855,6 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!1 &1582467212
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1582467213}
-  - component: {fileID: 1582467215}
-  - component: {fileID: 1582467214}
-  m_Layer: 5
-  m_Name: DarkOverlay
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 0
---- !u!224 &1582467213
-RectTransform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1582467212}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 237975012}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
-  m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &1582467214
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1582467212}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
-  m_Material: {fileID: 0}
-  m_Color: {r: 0, g: 0, b: 0, a: 0.78431374}
-  m_RaycastTarget: 0
-  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
-  m_Maskable: 1
-  m_OnCullStateChanged:
-    m_PersistentCalls:
-      m_Calls: []
-  m_Sprite: {fileID: 0}
-  m_Type: 0
-  m_PreserveAspect: 0
-  m_FillCenter: 1
-  m_FillMethod: 4
-  m_FillAmount: 1
-  m_FillClockwise: 1
-  m_FillOrigin: 0
-  m_UseSpriteMesh: 0
-  m_PixelsPerUnitMultiplier: 1
---- !u!222 &1582467215
-CanvasRenderer:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1582467212}
-  m_CullTransparentMesh: 1
 --- !u!1 &1586761874
 GameObject:
   m_ObjectHideFlags: 0
@@ -5286,24 +5106,15 @@ MonoBehaviour:
     characterPortrait: {fileID: 0}
     sentence: "\uAFC8\uC18D\uC5D0\uC11C \uC8FD\uB294\uB2E4\uB294\uAC74... \uC5B4\uB5A4
       \uC8FD\uC74C\uC77C\uAE4C?"
-    useGlitch: 0
-    glitchPortrait: {fileID: 0}
-    glitchSentence: 
   - speakerName: ...
     characterPortrait: {fileID: 0}
     sentence: "\uB0B4\uAC00 \uC8FD\uB294\uB2E4\uB294\uAC83 \uC870\uCC28 \uC778\uC2DD\uD558\uC9C0
       \uBABB\uD558\uB294 \uC8FD\uC74C\uC778\uAC78\uAE4C."
-    useGlitch: 0
-    glitchPortrait: {fileID: 0}
-    glitchSentence: 
   - speakerName: ...
     characterPortrait: {fileID: 0}
     sentence: "\uC815\uB9D0 \uC4F8\uC4F8\uD558\uB124."
-    useGlitch: 0
-    glitchPortrait: {fileID: 0}
-    glitchSentence: 
   creditsScrollSpeed: 100
-  targetCreditY: 1600
+  targetCreditY: 1500
   waitAfterCredits: 0
   mainMenuSceneName: MainMenuScene
 --- !u!4 &1652244421

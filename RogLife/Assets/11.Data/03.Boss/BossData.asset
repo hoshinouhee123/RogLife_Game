@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EnemyData
   enemyName: "\uD0C0\uC774\uC5B4\uD53C"
   enemySprite: {fileID: 21300000, guid: b369e3d7b0f95d54995c6379644b4c3c, type: 3}
-  maxHealth: 100
+  maxHealth: 250
   moveSpeed: 1
   damage: 1
   hitSound: {fileID: 0}
@@ -31,3 +31,4 @@ MonoBehaviour:
   dashPrepTime: 1
   stunTime: 2
   wallCrashDamage: 10
+  deathEffectPrefab: {fileID: 0}

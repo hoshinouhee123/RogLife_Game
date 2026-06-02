@@ -16,8 +16,7 @@ public class MapGenerator : MonoBehaviour
 
     [Header("배경 64x64 패턴 설정 (16x16 타일 16개)")]
     public Tilemap backgroundTilemap;
-    // 인스펙터에서 16개의 타일을 0번부터 15번까지 순서대로 넣어주세요
-    public TileBase[] backgroundPattern = new TileBase[16];
+    
 
     [Header("몬스터 소환 설정")]
     public GameObject enemyPrefab;
@@ -46,6 +45,12 @@ public class MapGenerator : MonoBehaviour
         public string floorName;             // 인스펙터 보기 편하게 (예: 1층, 2층)
         public EnemyData[] enemies;          // 이 층에서 나오는 일반 몬스터들
         public EnemyData[] bosses;           // 이 층에서 나오는 보스들
+        // ★ [새로 추가된 부분] 층별 아트와 사운드!
+
+        [Header("층별 아트 & 사운드")]
+        public AudioClip floorBgm;              // 이 층의 BGM
+        public Sprite roomFloorSprite;          // 방 안쪽 바닥/벽 이미지
+        public TileBase[] backgroundPattern = new TileBase[16]; // 맵 바깥쪽 배경 타일 (16개)
     }
 
     [Header("스테이지(층) 진행 설정")]
@@ -77,6 +82,12 @@ public class MapGenerator : MonoBehaviour
         // ==========================================
         int floorIndex = Mathf.Clamp(currentFloor - 1, 0, floorSettings.Length - 1);
         FloorData currentFloorData = floorSettings[floorIndex];
+
+        // ★ [추가됨] 맵 생성을 시작할 때, 현재 층의 BGM을 틀어줍니다!
+        if (BGMManager.Instance != null && currentFloorData.floorBgm != null)
+        {
+            BGMManager.Instance.PlayStageBGM(currentFloorData.floorBgm);
+        }
 
         // 현재 층에 설정된 방 개수를 가져옴
         int currentMaxRooms = currentFloorData.maxRooms;
@@ -177,6 +188,12 @@ public class MapGenerator : MonoBehaviour
 
             RoomController controller = newRoom.GetComponent<RoomController>();
 
+            // ★ [추가됨] 방을 생성하자마자, 이 층의 바닥 이미지로 갈아 끼워줍니다!
+            if (currentFloorData.roomFloorSprite != null)
+            {
+                controller.ChangeRoomBackground(currentFloorData.roomFloorSprite);
+            }
+
             // 1. 아이템 방 소환
             if (pos == itemRoomPos)
             {
@@ -262,7 +279,8 @@ public class MapGenerator : MonoBehaviour
 
         if (spawnedRooms.ContainsKey(Vector2Int.zero)) spawnedRooms[Vector2Int.zero].GetComponent<RoomController>().VisitRoom();
 
-        GenerateBackground(roomPositions);
+        // ★ [수정됨] 배경을 칠할 때, 현재 층의 타일 패턴을 넘겨줍니다!
+        GenerateBackground(roomPositions, currentFloorData.backgroundPattern);
     }
 
     //  포탈을 탔을 때 맵을 싹 지우고 새로 짜는 함수!
@@ -331,9 +349,9 @@ public class MapGenerator : MonoBehaviour
         Time.timeScale = 1f;
     }
 
-    void GenerateBackground(List<Vector2Int> roomPositions)
+    void GenerateBackground(List<Vector2Int> roomPositions, TileBase[] pattern)
     {
-        if (backgroundTilemap == null || backgroundPattern.Length != 16) return;
+        if (backgroundTilemap == null || pattern == null || pattern.Length != 16) return;
 
         int minRoomX = int.MaxValue, maxRoomX = int.MinValue;
         int minRoomY = int.MaxValue, maxRoomY = int.MinValue;
@@ -360,10 +378,9 @@ public class MapGenerator : MonoBehaviour
             {
                 int patternX = (x % 4 + 4) % 4;
                 int patternY = (y % 4 + 4) % 4;
-
                 int tileIndex = (3 - patternY) * 4 + patternX;
 
-                backgroundTilemap.SetTile(new Vector3Int(x, y, 0), backgroundPattern[tileIndex]);
+                backgroundTilemap.SetTile(new Vector3Int(x, y, 0), pattern[tileIndex]);
             }
         }
     }

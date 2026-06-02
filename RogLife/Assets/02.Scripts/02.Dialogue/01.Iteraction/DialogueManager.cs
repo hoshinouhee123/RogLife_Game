@@ -14,6 +14,11 @@ public struct DialogueLine
     public Sprite characterPortrait; // 캐릭터 일러스트
     [TextArea(3, 5)]
     public string sentence;          // 대화 내용
+
+    [Header("글리치(공포) 연출 옵션")]
+    public bool useGlitch;           // 이 대사에서 글리치 효과를 쓸 것인가?
+    public Sprite glitchPortrait;    // 순간적으로 바뀔 기괴한 일러스트
+    public string glitchSentence;    // 순간적으로 바뀔 기괴한 텍스트 (예: 살려줘살려줘살려줘)
 }
 
 // 2. 대화 매니저
@@ -33,6 +38,19 @@ public class DialogueManager : MonoBehaviour
     public float typingSpeed = 0.05f;      // 글자 출력 속도 (작을수록 빠름)
     public AudioSource audioSource; // 소리를 재생할 스피커 역할
     public AudioClip typingSound;   // 재생할 타이핑 효과음 파일
+
+    // ==========================================
+    // ★ [새로 추가됨] 화면 전체 공포 연출용 UI
+    // ==========================================
+    [Header("화면 전체 글리치 연출")]
+    public GameObject darkOverlay;     // 화면 어두워짐 (검은 반투명 패널)
+    public GameObject glitchOverlay;   // 지지직거리는 TV 노이즈 이미지
+
+    // ★ [새로 추가됨] 글리치 효과음 (치지직! 하는 잡음)
+    public AudioClip glitchSound;
+
+    // ★ [수정됨] 현재 출력 중인 대사 정보를 통째로 기억하도록 변경
+    private DialogueLine currentActiveLine;
 
 
     private Queue<DialogueLine> sentences;
@@ -67,67 +85,84 @@ public class DialogueManager : MonoBehaviour
     // 플레이어가 스페이스바(E)를 누를 때마다 실행됨
     public void DisplayNextSentence()
     {
-        // 1. 만약 지금 글자가 타타탁 쳐지고 있는 중이라면?
         if (isTyping)
         {
-            // 타이핑 연출을 강제로 멈추고, 문장을 한 번에 다 보여줌
             StopAllCoroutines();
-            dialogueText.text = currentSentence;
+
+            // 스킵 시 혹시 글리치 중이었다면 강제로 정상 복구!
+            dialogueText.color = Color.white;
+            dialogueText.text = currentActiveLine.sentence;
+            if (currentActiveLine.characterPortrait != null)
+                portraitImage.sprite = currentActiveLine.characterPortrait;
+
+            // ★ [추가됨] 스킵 시 멈춰있던 BGM도 강제로 다시 틀어줌!
+            if (BGMManager.Instance != null && BGMManager.Instance.audioSource != null)
+            {
+                BGMManager.Instance.audioSource.UnPause();
+            }
+
+            // ★ [추가됨] 스킵 시 화면 연출도 강제로 꺼줌!
+            if (darkOverlay != null) darkOverlay.SetActive(false);
+            if (glitchOverlay != null) glitchOverlay.SetActive(false);
+
             isTyping = false;
             return;
         }
 
-        // 2. 글자 출력이 다 끝난 상태라면 다음 대화로 넘어감
         if (sentences.Count == 0)
         {
             EndDialogue();
             return;
         }
 
-        DialogueLine currentLine = sentences.Dequeue();
+        currentActiveLine = sentences.Dequeue();
+        nameText.text = currentActiveLine.speakerName;
+        dialogueText.color = Color.white;
 
-        // UI에 이름과 일러스트 적용
-        nameText.text = currentLine.speakerName;
-
-        if (currentLine.characterPortrait != null)
+        if (currentActiveLine.characterPortrait != null)
         {
-            portraitImage.sprite = currentLine.characterPortrait;
+            portraitImage.sprite = currentActiveLine.characterPortrait;
             portraitImage.gameObject.SetActive(true);
         }
-        else
-        {
-            portraitImage.gameObject.SetActive(false); // 일러스트 없으면 숨김
-        }
+        else { portraitImage.gameObject.SetActive(false); }
 
-        // 타이핑 효과 시작
-        currentSentence = currentLine.sentence;
-        StopAllCoroutines(); // 혹시 모를 꼬임 방지
-        StartCoroutine(TypeSentence(currentSentence));
+        StopAllCoroutines();
+        StartCoroutine(TypeSentence(currentActiveLine));
     }
 
-    // 타이핑 효과를 담당하는 코루틴(비동기 함수)
-    IEnumerator TypeSentence(string sentence)
+    // ★ [수정됨] 타이핑 도중 한 문장당 딱 1번만 글리치를 터뜨리도록 방어막 추가!
+    IEnumerator TypeSentence(DialogueLine line)
     {
         isTyping = true;
-        dialogueText.text = ""; // 텍스트를 일단 싹 비움
+        dialogueText.text = "";
 
-        // 문장을 한 글자씩 쪼개서 추가함
-        foreach (char letter in sentence.ToCharArray())
+        char[] chars = line.sentence.ToCharArray();
+        bool hasGlitched = false; // ★ 이 문장에서 글리치가 터졌는지 기억하는 변수
+
+        for (int i = 0; i < chars.Length; i++)
         {
-            dialogueText.text += letter; // 한 글자 붙이고
+            dialogueText.text += chars[i];
 
-            if (letter != ' ' && audioSource != null && typingSound != null)
+            if (chars[i] != ' ' && audioSource != null && typingSound != null)
             {
-                // 소리의 높낮이(Pitch)를 살짝 랜덤으로 섞으면 덜 지루하고 자연스러움
                 audioSource.pitch = UnityEngine.Random.Range(0.9f, 1.1f);
                 audioSource.PlayOneShot(typingSound);
             }
 
+            // ==============================================================
+            // [공포 연출] 글리치 옵션이 켜져 있고, 아직 안 터졌으며, 확률에 당첨되었다면?
+            // ==============================================================
+            // (테스트용으로 100을 넣어도, hasGlitched 덕분에 딱 1번만 터집니다!)
+            if (line.useGlitch && !hasGlitched && UnityEngine.Random.Range(0, 100) < 2) // 확률은 2~5 정도로 맞춰주세요!
+            {
+                hasGlitched = true; // 이제 이 문장에선 더 이상 안 터짐!
+                yield return StartCoroutine(GlitchRoutine(line));
+            }
 
             yield return new WaitForSecondsRealtime(typingSpeed);
         }
 
-        isTyping = false; // 출력이 다 끝나면 상태 변경
+        isTyping = false;
     }
 
     public void EndDialogue()
@@ -166,5 +201,46 @@ public class DialogueManager : MonoBehaviour
                 DisplayNextSentence();
             }
         }
+    }
+
+    // ★ [수정됨] 글리치 중 BGM 정지 기능 추가
+    IEnumerator GlitchRoutine(DialogueLine line)
+    {
+        string savedText = dialogueText.text;
+
+        if (BGMManager.Instance != null && BGMManager.Instance.audioSource != null)
+            BGMManager.Instance.audioSource.Pause();
+
+        // ==============================================================
+        // ★ [추가됨] 화면 어두워짐 + 지지직 노이즈 켜기 + 카메라 지진!!
+        // ==============================================================
+        if (darkOverlay != null) darkOverlay.SetActive(true);
+        if (glitchOverlay != null) glitchOverlay.SetActive(true);
+
+        // 화면을 0.15초 동안 덜덜덜덜 떨게 만듭니다!
+        if (CameraShake.Instance != null) CameraShake.Instance.ShakeCamera(0.15f, 0.5f);
+
+        dialogueText.color = Color.red;
+        if (!string.IsNullOrEmpty(line.glitchSentence)) dialogueText.text = line.glitchSentence;
+        if (line.glitchPortrait != null) portraitImage.sprite = line.glitchPortrait;
+
+        if (audioSource != null && glitchSound != null)
+            audioSource.PlayOneShot(glitchSound);
+
+        // 0.15초 대기 (이 시간 동안 화면이 미친듯이 떨리고 지지직거립니다)
+        yield return new WaitForSecondsRealtime(0.15f);
+
+        // ==============================================================
+        // ★ [추가됨] 연출 종료 시 화면 끄기
+        // ==============================================================
+        if (darkOverlay != null) darkOverlay.SetActive(false);
+        if (glitchOverlay != null) glitchOverlay.SetActive(false);
+
+        dialogueText.color = Color.white;
+        dialogueText.text = savedText;
+        if (line.characterPortrait != null) portraitImage.sprite = line.characterPortrait;
+
+        if (BGMManager.Instance != null && BGMManager.Instance.audioSource != null)
+            BGMManager.Instance.audioSource.UnPause();
     }
 }

@@ -17,7 +17,8 @@ public class GameOverManager : MonoBehaviour
     public float fadeDuration = 2.0f;
     public DialogueLine[] deathDialogues;
     public float creditsScrollSpeed = 100f;
-    public float creditsDuration = 10f;
+    // ★ [새로 추가됨] 크레딧이 멈출 목표 Y 좌표
+    public float targetCreditY = 1500f;
 
     // ★ [추가됨] 크레딧이 다 올라간 뒤 메인화면으로 가기 전 대기할 시간 (초)
     public float waitAfterCredits = 4.0f;
@@ -97,13 +98,12 @@ public class GameOverManager : MonoBehaviour
         creditsPanel.SetActive(true);
 
         float timer = 0f;
-        while (timer < creditsDuration)
+        // ★ [수정됨] 시간 대신 Y좌표를 검사합니다!
+        while (creditsTransform.anchoredPosition.y < targetCreditY)
         {
-
-            // ★ [추가됨] 엔터키를 누르면 크레딧 스크롤 즉시 종료
+            // 엔터 누르면 스킵
             if (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter)) break;
 
-            timer += Time.unscaledDeltaTime;
             creditsTransform.anchoredPosition += new Vector2(0, creditsScrollSpeed * Time.unscaledDeltaTime);
             yield return null;
         }
