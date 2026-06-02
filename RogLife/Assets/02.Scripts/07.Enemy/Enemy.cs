@@ -29,6 +29,9 @@ public class Enemy : MonoBehaviour
     public GameObject keyPrefab;
     [Range(0, 100)] public float keyDropChance = 10f; // 일반 몹은 10% 정도로 낮게!
 
+    // [기존 변수 아래에 추가]
+    private float fireTimer = 0f; // 원거리 몹 사격 쿨타임 타이머
+
     void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
@@ -46,6 +49,29 @@ public class Enemy : MonoBehaviour
 
         GameObject player = GameObject.FindGameObjectWithTag("Player");
         if (player != null) playerTransform = player.transform;
+
+        // ==========================================
+        // ★ [수정됨] 내 몸에 맞게 '원형' 콜라이더 크기 조절하기!
+        // ==========================================
+        CircleCollider2D circleCol = GetComponent<CircleCollider2D>();
+        if (circleCol != null)
+        {
+            if (enemyData.useCustomHitbox)
+            {
+                // 데이터에 적힌 반지름대로 수동 조절
+                circleCol.radius = enemyData.hitboxRadius;
+                circleCol.offset = enemyData.hitboxOffset;
+            }
+            else if (sr.sprite != null)
+            {
+                // 수동 설정을 안 켰다면, 이미지의 가로/세로 중 더 긴 쪽을 기준으로 넉넉하게 원을 씌워줌!
+                float extentsX = sr.sprite.bounds.extents.x;
+                float extentsY = sr.sprite.bounds.extents.y;
+                circleCol.radius = Mathf.Max(extentsX, extentsY);
+                circleCol.offset = Vector2.zero;
+            }
+        }
+        // ==========================================
 
         isAwake = false;
     }
@@ -83,23 +109,87 @@ public class Enemy : MonoBehaviour
         else HandleNormalEnemy();
     }
 
+    // ★ [수정됨] 일반 몹 / 원거리 몹 이동 및 사격 로직 분리
+    // ★ [수정됨] 뭉침 방지(Separation) 기술이 적용된 이동 AI
     private void HandleNormalEnemy()
     {
-        Vector2 targetPos = playerTransform.position;
-        Vector2 newPos = Vector2.MoveTowards(rb.position, targetPos, enemyData.moveSpeed * Time.fixedDeltaTime);
-        rb.MovePosition(newPos);
+        // 1. 플레이어를 향하는 기본 방향
+        Vector2 directionToPlayer = (playerTransform.position - transform.position).normalized;
+
+        // ==========================================
+        // ★ 2. 서로 겹치지 않게 밀어내는 힘(Separation) 계산
+        // ==========================================
+        Vector2 separationForce = Vector2.zero;
+
+        // 내 주변 반경 1.5f 안에 있는 모든 콜라이더를 찾습니다.
+        Collider2D[] nearbyEnemies = Physics2D.OverlapCircleAll(transform.position, 1.5f);
+        foreach (Collider2D col in nearbyEnemies)
+        {
+            // 찾은 것 중에 나 자신이 아니고, 'Enemy' 태그를 가진 다른 적이라면?
+            if (col.gameObject != this.gameObject && col.CompareTag("Enemy"))
+            {
+                // 나와 상대방의 거리 차이를 계산해서 반대 방향으로 밀어냄! (가까울수록 강하게)
+                Vector2 pushDirection = transform.position - col.transform.position;
+                separationForce += pushDirection.normalized / Mathf.Max(pushDirection.magnitude, 0.1f);
+            }
+        }
+
+        // 3. 최종 이동 방향 = (플레이어 방향) + (서로 밀어내는 힘 * 0.5배)
+        Vector2 moveDir = (directionToPlayer + separationForce * 0.5f).normalized;
+        // ==========================================
+
+        // 4. 계산된 최종 방향(moveDir)으로 이동!
+        if (enemyData.isShooter)
+        {
+            float dist = Vector2.Distance(rb.position, playerTransform.position);
+            if (dist > enemyData.attackRange)
+            {
+                rb.MovePosition(rb.position + moveDir * enemyData.moveSpeed * Time.fixedDeltaTime);
+            }
+            else
+            {
+                // 무빙샷
+                rb.MovePosition(rb.position + moveDir * (enemyData.moveSpeed * 0.3f) * Time.fixedDeltaTime);
+
+                fireTimer -= Time.fixedDeltaTime;
+                if (fireTimer <= 0)
+                {
+                    ShootAtPlayer();
+                    fireTimer = enemyData.fireRate;
+                }
+            }
+        }
+        else
+        {
+            // 일반 몹
+            rb.MovePosition(rb.position + moveDir * enemyData.moveSpeed * Time.fixedDeltaTime);
+        }
     }
 
+    // ★ [수정됨] 대쉬 보스의 AI 패턴 (자석 기능 + 무한 팽이 방지 추가)
     private void HandleDashBoss()
     {
         switch (bossState)
         {
             case BossState.Idle:
-                // ★ [수정됨] 쉬는 동안 가만히 있는게 아니라, 플레이어를 쫓아갑니다!
-                Vector2 targetPos = playerTransform.position;
-                Vector2 newPos = Vector2.MoveTowards(rb.position, targetPos, enemyData.moveSpeed * Time.fixedDeltaTime);
-                rb.MovePosition(newPos);
+                // 1. 보스도 평상시엔 자석처럼 서로 밀어내며 플레이어를 쫓아갑니다.
+                Vector2 directionToPlayer = (playerTransform.position - transform.position).normalized;
+                Vector2 separationForce = Vector2.zero;
 
+                Collider2D[] nearbyEnemies = Physics2D.OverlapCircleAll(transform.position, 1.5f);
+                foreach (Collider2D col in nearbyEnemies)
+                {
+                    if (col.gameObject != this.gameObject && col.CompareTag("Enemy"))
+                    {
+                        Vector2 pushDirection = transform.position - col.transform.position;
+                        separationForce += pushDirection.normalized / Mathf.Max(pushDirection.magnitude, 0.1f);
+                    }
+                }
+
+                Vector2 moveDir = (directionToPlayer + separationForce * 0.5f).normalized;
+                rb.MovePosition(rb.position + moveDir * enemyData.moveSpeed * Time.fixedDeltaTime);
+
+                // 2. 쿨타임이 차면 대쉬 준비 상태로 넘어감
                 stateTimer -= Time.fixedDeltaTime;
                 if (stateTimer <= 0)
                 {
@@ -109,21 +199,35 @@ public class Enemy : MonoBehaviour
                 break;
 
             case BossState.PrepDash:
-                // 기를 모을 때는 제자리에 딱! 멈춰서 노려봄
+                // 대쉬 준비 (기를 모음)
                 stateTimer -= Time.fixedDeltaTime;
                 if (stateTimer <= 0)
                 {
                     dashDirection = (playerTransform.position - transform.position).normalized;
                     bossState = BossState.Dashing;
+
+                    // ★ [핵심 안전장치] 대쉬 최대 지속 시간을 2초로 강제 설정합니다!
+                    stateTimer = 2.0f;
                 }
                 break;
 
             case BossState.Dashing:
+                // 미친 속도로 돌진!
                 Vector2 dashVelocity = dashDirection * (enemyData.moveSpeed * enemyData.dashSpeedMultiplier);
                 rb.MovePosition(rb.position + dashVelocity * Time.fixedDeltaTime);
+
+                // ★ [핵심 안전장치] 만약 벽에 못 박고 2초가 지났다면? 강제로 대쉬를 끝내버립니다!
+                // (어딘가에 껴서 영원히 빙글빙글 도는 버그 원천 차단)
+                stateTimer -= Time.fixedDeltaTime;
+                if (stateTimer <= 0)
+                {
+                    bossState = BossState.Idle;
+                    stateTimer = 1f; // 1초 쉬었다가 다시 패턴 시작
+                }
                 break;
 
             case BossState.Stunned:
+                // 기절 상태
                 stateTimer -= Time.fixedDeltaTime;
                 if (stateTimer <= 0)
                 {
@@ -224,31 +328,51 @@ public class Enemy : MonoBehaviour
         Destroy(gameObject);
     }
 
+    // ★ [수정됨] 죽을 때 분열하는 로직 추가
     void Die()
     {
         PlaySoundWithMixer(enemyData.deathSound);
 
-        // ★ [새로 추가됨] 죽는 이펙트 소환 (소환 후 1.5초 뒤 자동 파괴)
         if (enemyData.deathEffectPrefab != null)
         {
             GameObject effect = Instantiate(enemyData.deathEffectPrefab, transform.position, Quaternion.identity);
             Destroy(effect, 1.5f);
         }
 
-        // ★ [새로 추가됨] 죽기 직전에 확률 계산해서 코인 떨구기!
-        if (coinPrefab != null)
+        // 코인 & 열쇠 드랍 (기존 코드)
+        if (coinPrefab != null && Random.Range(0, 100f) <= coinDropChance) Instantiate(coinPrefab, transform.position, Quaternion.identity);
+        if (keyPrefab != null && Random.Range(0, 100f) <= keyDropChance) Instantiate(keyPrefab, transform.position, Quaternion.identity);
+
+        // ==========================================
+        // ★ [새로 추가됨] 죽을 때 2마리로 쪼개짐!
+        // (원본(0)일 때만 분열하고, 분열된 애들은 다시 분열하지 않음)
+        // ==========================================
+        if (enemyData != null && enemyData.isNormalSplitter && splitLevel == 0)
         {
-            // 0~100 사이의 숫자를 뽑아서 지정한 확률보다 낮으면 당첨!
-            if (Random.Range(0, 100f) <= coinDropChance)
+            for (int i = 0; i < 2; i++)
             {
-                // 죽는 몬스터의 위치에 코인 생성
-                Instantiate(coinPrefab, transform.position, Quaternion.identity);
+                // 옆으로 살짝 비켜서 스폰
+                Vector3 randomOffset = (Vector3)Random.insideUnitCircle * 0.8f;
+                GameObject splitMob = Instantiate(gameObject, transform.position + randomOffset, Quaternion.identity);
+
+                Enemy splitScript = splitMob.GetComponent<Enemy>();
+
+                // 스탯 절반 깎고 복제 세팅
+                splitScript.splitLevel = this.splitLevel + 1;
+                splitScript.myMaxHealth = this.myMaxHealth / 2f;
+                if (splitScript.myMaxHealth < 1) splitScript.myMaxHealth = 1; // 체력 0 방지
+                splitScript.currentHealth = splitScript.myMaxHealth;
+
+                splitScript.currentRoom = this.currentRoom;
+                splitScript.playerTransform = this.playerTransform;
+                splitScript.isAwake = true; // 태어나자마자 바로 추격 시작
+
+                splitMob.GetComponent<Rigidbody2D>().linearVelocity = Vector2.zero;
+                splitMob.transform.localScale = this.transform.localScale * 0.7f; // 크기도 70%로 축소
+
+                if (currentRoom != null) currentRoom.enemiesInRoom.Add(splitScript);
             }
         }
-
-        // ★ [추가됨] 열쇠 떨구기
-        if (keyPrefab != null && Random.Range(0, 100f) <= keyDropChance)
-            Instantiate(keyPrefab, transform.position, Quaternion.identity);
 
         Destroy(gameObject);
     }
@@ -265,4 +389,24 @@ public class Enemy : MonoBehaviour
         source.Play();
         Destroy(audioObj, clip.length);
     }
+
+    // ★ [새로 추가] 총알 생성 및 발사
+    private void ShootAtPlayer()
+    {
+        if (enemyData.enemyBulletPrefab != null)
+        {
+            // ★ [추가됨] 총알 쏠 때 효과음 재생!
+            if (enemyData.shootSound != null)
+            {
+                PlaySoundWithMixer(enemyData.shootSound);
+            }
+
+            GameObject bullet = Instantiate(enemyData.enemyBulletPrefab, transform.position, Quaternion.identity);
+            Vector2 dir = (playerTransform.position - transform.position).normalized;
+
+            bullet.GetComponent<EnemyBullet>().Setup(dir, enemyData.damage);
+        }
+    }
+
+
 }

@@ -14,6 +14,18 @@ public class EnemyData : ScriptableObject
     public float moveSpeed;       // 이동 속도
     public float damage;          // 플레이어에게 부딪혔을 때 주는 피해량
 
+    [Header("원거리 공격 몹 설정")]
+    public bool isShooter = false;           // 체크하면 원거리 몹이 됨
+    public GameObject enemyBulletPrefab;     // 날릴 투사체 프리팹
+    public float fireRate = 1.5f;            // 공격 속도 (1.5초마다 1발)
+    public float attackRange = 8f;           // 이 사거리 안에 들어오면 쏘기 시작함
+
+    // ★ [새로 추가됨] 투사체 발사 효과음!
+    public AudioClip shootSound;
+
+    [Header("사망 시 분열 몹 설정")]
+    public bool isNormalSplitter = false;    // 체크하면 죽을 때 2마리로 분열함
+
     // 몬스터 전용 효과음
     [Header("효과음")]
     public AudioClip hitSound;    // 맞았을 때 소리
@@ -40,4 +52,13 @@ public class EnemyData : ScriptableObject
 
     // ★ [새로 추가] 죽을 때 나올 이펙트 프리팹
     public GameObject deathEffectPrefab;
+
+    // ==========================================
+    // ★ [새로 추가됨] 적 개별 충돌 판정(콜라이더) 설정
+    // ==========================================
+    [Header("충돌 판정 크기 설정")]
+    [Tooltip("체크하면 아래의 크기로 콜라이더가 조절됩니다.")]
+    public bool useCustomHitbox = false;
+    public float hitboxRadius = 0.5f;              // 원형 콜라이더의 반지름
+    public Vector2 hitboxOffset = new Vector2(0f, 0f); // 중심점 위치
 }
