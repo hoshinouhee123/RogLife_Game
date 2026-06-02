@@ -11,6 +11,8 @@ public class Enemy : MonoBehaviour
     private Rigidbody2D rb;
 
     public bool isAwake = false;
+    public float wakeUpDelay = 1.0f; // 깨어난 후 가만히 쳐다보는 시간 (초)
+    private float currentWakeUpDelay = 0f;
 
     public enum BossState { Idle, PrepDash, Dashing, Stunned }
     public BossState bossState = BossState.Idle;
@@ -82,6 +84,8 @@ public class Enemy : MonoBehaviour
     public void WakeUp()
     {
         isAwake = true;
+        // 깨어나면 타이머 1초 장전!
+        currentWakeUpDelay = wakeUpDelay;
     }
 
     // ★ [새로 추가됨] 대쉬할 때 팽이처럼 빙글빙글 도는 시각적 연출!
@@ -108,7 +112,15 @@ public class Enemy : MonoBehaviour
     {
         if (!isAwake || enemyData == null || playerTransform == null) return;
 
+        // ★ [추가됨] 깨어난 직후 1초 동안은 아무 행동도 하지 않고 멈춰있습니다!
+        if (currentWakeUpDelay > 0)
+        {
+            currentWakeUpDelay -= Time.fixedDeltaTime;
+            return;
+        }
+
         if (enemyData.isDashSplittingBoss) HandleDashBoss();
+        else if (enemyData.isStealthBoss) HandleStealthBoss();
         else HandleNormalEnemy();
     }
 
@@ -414,5 +426,47 @@ public class Enemy : MonoBehaviour
         }
     }
 
+    // ==========================================
+    // ★ [새로 추가됨] 2층 시야 기믹 보스 AI
+    // ==========================================
+    private void HandleStealthBoss()
+    {
+        Player playerScript = playerTransform.GetComponent<Player>();
+        if (playerScript == null) return;
 
+        // 1. 플레이어 중심에서 나(보스)를 향하는 방향 벡터
+        Vector2 dirToBoss = (transform.position - playerTransform.position).normalized;
+
+        // 2. 플레이어가 현재 바라보고 있는 방향 벡터
+        Vector2 playerFacing = playerScript.lastFacingDir;
+
+        // 3. 두 방향 사이의 '각도'를 수학적으로 계산!
+        float angle = Vector2.Angle(playerFacing, dirToBoss);
+
+        SpriteRenderer sr = GetComponent<SpriteRenderer>();
+        float currentSpeed = enemyData.moveSpeed;
+
+        // 4. 내가 플레이어의 시야각(예: 좌우 45도 = 총 90도 부채꼴) 안에 들어왔는가?
+        if (angle < enemyData.sightAngle)
+        {
+            // [시야 안 (빛)]
+            // 괴로워하며 속도가 절반으로 뚝 떨어지고, 모습이 완전히 드러납니다.
+            currentSpeed *= 0.5f;
+            sr.color = Color.white;
+        }
+        else
+        {
+            // [시야 밖 (어둠)]
+            // 모습이 거의 안 보이는 까만 그림자 상태로, 미친 속도(대쉬 속도)로 덮쳐옵니다!
+            currentSpeed *= enemyData.dashSpeedMultiplier;
+
+            // 검은색에 가까우면서 반투명하게 만듦 (유령처럼)
+            sr.color = new Color(0.1f, 0f, 0f, 0.3f);
+        }
+
+        // 5. 계산된 속도로 플레이어를 향해 이동
+        Vector2 targetPos = playerTransform.position;
+        Vector2 newPos = Vector2.MoveTowards(rb.position, targetPos, currentSpeed * Time.fixedDeltaTime);
+        rb.MovePosition(newPos);
+    }
 }

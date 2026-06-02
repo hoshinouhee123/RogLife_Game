@@ -2104,7 +2104,10 @@ PrefabInstance:
     m_RemovedComponents:
     - {fileID: 5067370624874143111, guid: 8ada62d262084494186b7287a3a471f3, type: 3}
     m_RemovedGameObjects: []
-    m_AddedGameObjects: []
+    m_AddedGameObjects:
+    - targetCorrespondingSourceObject: {fileID: 9023178638015224879, guid: 8ada62d262084494186b7287a3a471f3, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1914490480}
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 4712325135393211889, guid: 8ada62d262084494186b7287a3a471f3, type: 3}
       insertIndex: -1
@@ -2127,6 +2130,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 566474824173931449ee99ddc9b64771, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Player
+  lastFacingDir: {x: 0, y: -1}
+  isAttacking: 0
   maxHealth: 3
   currentHealth: 0
   attackDamage: 1
@@ -2988,7 +2993,7 @@ MonoBehaviour:
     - {fileID: 11400000, guid: 0d70d2d58cf9d3240bdbee98509fb4aa, type: 2}
     - {fileID: 11400000, guid: bf7be9c002ab44a4a96d1949603ef5b4, type: 2}
     bosses:
-    - {fileID: 11400000, guid: 82876b319c69e984294a0bf90883686a, type: 2}
+    - {fileID: 11400000, guid: 973c83b6cc6dd7147915c3b37045f54e, type: 2}
     floorBgm: {fileID: 8300000, guid: 4690451a403ee4d4db44960cf37556c3, type: 3}
     roomFloorSprite: {fileID: 21300000, guid: e2e4d10c89a84054a9a56457243b6548, type: 3}
     backgroundPattern:
@@ -6401,6 +6406,110 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1900866002}
   m_CullTransparentMesh: 1
+--- !u!1 &1914490479
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1914490480}
+  - component: {fileID: 1914490482}
+  - component: {fileID: 1914490481}
+  m_Layer: 7
+  m_Name: Flashlight
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1914490480
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1914490479}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 0.3, y: 1.1, z: 0.2}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 669984957}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1914490481
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1914490479}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1a5e3f63fe6dda14f80e79ae89acd490, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::FlashlightController
+--- !u!331 &1914490482
+SpriteMask:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1914490479}
+  m_Enabled: 1
+  m_CastShadows: 1
+  m_ReceiveShadows: 1
+  m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
+  m_MotionVectors: 1
+  m_LightProbeUsage: 1
+  m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 0
+  m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
+  m_ForceMeshLod: -1
+  m_MeshLodSelectionBias: 0
+  m_RenderingLayerMask: 1
+  m_RendererPriority: 0
+  m_Materials:
+  - {fileID: 2100000, guid: 15d0c3709176029428a0da2f8cecf0b5, type: 2}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
+  m_PreserveUVs: 0
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 1
+  m_SelectedEditorRenderState: 3
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_GlobalIlluminationMeshLod: 0
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+  m_MaskInteraction: 0
+  m_Sprite: {fileID: 21300000, guid: 665fbc10c8fec6e4bb78a251fa5db2cb, type: 3}
+  m_MaskAlphaCutoff: 0.2
+  m_FrontSortingLayerID: 0
+  m_BackSortingLayerID: 0
+  m_FrontSortingLayer: 0
+  m_BackSortingLayer: 0
+  m_FrontSortingOrder: 0
+  m_BackSortingOrder: 0
+  m_IsCustomRangeActive: 0
+  m_SpriteSortPoint: 0
+  m_MaskSource: 0
 --- !u!1 &1943006029
 GameObject:
   m_ObjectHideFlags: 0

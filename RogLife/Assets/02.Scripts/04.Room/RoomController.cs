@@ -71,6 +71,8 @@ public class RoomController : MonoBehaviour
     public bool isItemRoom = false;
     public bool isShopRoom = false;
 
+    public GameObject darknessOverlay;
+
     public List<Enemy> enemiesInRoom = new List<Enemy>();
 
     public void SetupDoors(RoomController t, RoomController b, RoomController l, RoomController r)
@@ -248,11 +250,12 @@ public class RoomController : MonoBehaviour
                 isCleared = true;
                 UnlockDoors();
 
+                // ★ 전투 끝나면 어둠 끄기
+                if (darknessOverlay != null) darknessOverlay.SetActive(false);
+
                 if (isBossRoom)
                 {
-                    // 보스가 싹 다 죽으면 HP바 숨기기!
                     if (BossUIManager.Instance != null) BossUIManager.Instance.HideHPBar();
-
                     SpawnBossRewards();
                 }
             }
@@ -366,15 +369,19 @@ public class RoomController : MonoBehaviour
             if (enemy != null)
             {
                 enemy.WakeUp();
-                isBossAlive = true; // 살아있는 적이 1마리라도 있으면 체크!
+                isBossAlive = true;
             }
         }
 
-        // ★ [핵심] 보스가 살아있을 때만 HP바를 켭니다! 
-        // (컷신 도중 killall로 죽여버렸을 때 빈 체력바가 떠있는 버그 방어)
         if (isBossRoom && BossUIManager.Instance != null && isBossAlive)
         {
             BossUIManager.Instance.ShowHPBar();
+        }
+
+        // ★ 2층 은신 보스라면 어둠 켜기!!
+        if (isBossRoom && myBossData != null && myBossData.isStealthBoss)
+        {
+            if (darknessOverlay != null) darknessOverlay.SetActive(true);
         }
     }
 

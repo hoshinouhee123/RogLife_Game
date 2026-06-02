@@ -6,6 +6,14 @@ using TMPro; // 오디오 믹서를 사용하기 위해 필수
 
 public class Player : MonoBehaviour
 {
+    [Header("시야 (보스 기믹용)")]
+    // ★ 플레이어가 마지막으로 바라본(또는 총을 쏜) 방향을 기억합니다.
+    public Vector2 lastFacingDir = Vector2.down;
+
+    // ★ [새로 추가됨] 현재 공격 키를 누르고 있는지 체크
+    public bool isAttacking = false;
+
+
     [Header("체력 및 스탯")]
     public int maxHealth = 3;      // 최대 하트 갯수 (3 = 하트 3칸)
     public int currentHealth;      // 현재 체력
@@ -38,6 +46,7 @@ public class Player : MonoBehaviour
     public int coinCount = 0;        // 현재 가진 코인 개수
     public TextMeshProUGUI coinText;            // 화면에 띄울 텍스트 UI
     public AudioClip coinGetSound;   // 짤랑! 하는 코인 획득 소리
+
 
     // ★ [열쇠용 변수 추가]
     public int keyCount = 0;
@@ -96,10 +105,7 @@ public class Player : MonoBehaviour
     // 공격 (화살표 키)
     void HandleShooting()
     {
-        // ★ [새로 추가됨] 콘솔 켜져있으면 총 쏘기 금지!
         if (CheatConsole.Instance != null && CheatConsole.Instance.isConsoleActive) return;
-
-        if (Time.time < nextFireTime) return;
 
         Vector2 shootDir = Vector2.zero;
 
@@ -108,12 +114,23 @@ public class Player : MonoBehaviour
         else if (Input.GetKey(KeyCode.LeftArrow)) shootDir = Vector2.left;
         else if (Input.GetKey(KeyCode.RightArrow)) shootDir = Vector2.right;
 
-        if (shootDir != Vector2.zero)
+        // ★ [새로 추가됨] 공격 방향키를 하나라도 누르고 있으면 true!
+        isAttacking = (shootDir != Vector2.zero);
+
+        if (isAttacking)
+        {
+            lastFacingDir = shootDir;
+        }
+
+        if (Time.time < nextFireTime) return;
+
+        if (isAttacking)
         {
             Shoot(shootDir);
             nextFireTime = Time.time + fireRate;
         }
     }
+
 
     // [2. Shoot 함수 덮어쓰기 & SpawnBullet 추가]
     void Shoot(Vector2 dir)

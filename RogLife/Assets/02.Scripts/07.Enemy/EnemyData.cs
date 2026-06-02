@@ -61,4 +61,11 @@ public class EnemyData : ScriptableObject
     public bool useCustomHitbox = false;
     public float hitboxRadius = 0.5f;              // 원형 콜라이더의 반지름
     public Vector2 hitboxOffset = new Vector2(0f, 0f); // 중심점 위치
+
+    // ==========================================
+    // ★ [새로 추가됨] 2층 보스: 은신 & 시야 기믹
+    // ==========================================
+    [Header("보스 특수 기믹 (은신 & 시야)")]
+    public bool isStealthBoss = false;       // 체크하면 은신 보스가 됩니다.
+    public float sightAngle = 45f;           // 플레이어의 시야각 (45도면 총 90도 부채꼴
 }
