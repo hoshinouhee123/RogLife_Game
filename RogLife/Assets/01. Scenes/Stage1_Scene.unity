@@ -3014,7 +3014,7 @@ MonoBehaviour:
     - {fileID: 11400000, guid: 34f70918045e2ca43ac23ffb65340e65, type: 2}
     bosses:
     - {fileID: 11400000, guid: 82876b319c69e984294a0bf90883686a, type: 2}
-    floorBgm: {fileID: 8300000, guid: 91eb10707b9cfd44d89ecef9e7237da9, type: 3}
+    floorBgm: {fileID: 8300000, guid: cb6296a07727c6143bd45ac0c8ccdbd9, type: 3}
     roomFloorSprite: {fileID: 21300000, guid: e2e4d10c89a84054a9a56457243b6548, type: 3}
     backgroundPattern:
     - {fileID: 0}
@@ -4393,8 +4393,8 @@ Camera:
   m_GameObject: {fileID: 1366389990}
   m_Enabled: 1
   serializedVersion: 2
-  m_ClearFlags: 1
-  m_BackGroundColor: {r: 0.19215687, g: 0.3019608, b: 0.4745098, a: 0}
+  m_ClearFlags: 2
+  m_BackGroundColor: {r: 1, g: 1, b: 1, a: 0}
   m_projectionMatrixMode: 1
   m_GateFitMode: 2
   m_FOVAxisMode: 0

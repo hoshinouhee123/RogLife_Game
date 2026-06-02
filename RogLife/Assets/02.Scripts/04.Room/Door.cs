@@ -14,32 +14,37 @@ public class Door : MonoBehaviour
     public Sprite unlockedSprite;
     public SpriteRenderer doorSpriteRenderer;
 
+    // ★ [1] 안 잠긴 문: 부드럽게 겹쳐질 때(Trigger) 방 이동
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        if (collision.CompareTag("Player"))
+        if (collision.CompareTag("Player") && !isLocked)
         {
-            // 잠겨있다면?
-            if (isLocked)
-            {
-                // 플레이어가 열쇠를 지불할 수 있다면 문이 열림!
-                if (collision.GetComponent<Player>().SpendKey(1))
-                {
-                    isLocked = false;
-                    if (doorSpriteRenderer != null && unlockedSprite != null)
-                        doorSpriteRenderer.sprite = unlockedSprite; // 잠금 해제된 이미지(황금문)로 변경
+            RoomManager.Instance.ChangeRoom(doorType);
+        }
+    }
 
-                    RoomManager.Instance.ChangeRoom(doorType);
-                }
-                else
-                {
-                    // 열쇠가 부족하면 안 열림 (여기에 "철컥" 닫힌 소리를 넣어도 좋습니다)
-                    Debug.Log("열쇠가 부족합니다!");
-                }
+    // ★ [2] 잠긴 문: 단단한 벽에 쿵! 부딪힐 때(Collision) 열쇠 검사
+    private void OnCollisionEnter2D(Collision2D collision)
+    {
+        if (collision.gameObject.CompareTag("Player") && isLocked)
+        {
+            // 플레이어가 열쇠를 냈다면?
+            if (collision.gameObject.GetComponent<Player>().SpendKey(1))
+            {
+                isLocked = false;
+
+                // ★ [핵심] 잠금이 풀렸으니 다시 부드럽게 통과할 수 있게 트리거로 변신!
+                GetComponent<Collider2D>().isTrigger = true;
+
+                if (doorSpriteRenderer != null && unlockedSprite != null)
+                    doorSpriteRenderer.sprite = unlockedSprite;
+
+                RoomManager.Instance.ChangeRoom(doorType);
             }
-            // 안 잠겨있으면 그냥 통과
             else
             {
-                RoomManager.Instance.ChangeRoom(doorType);
+                // 열쇠가 부족하면 열리지 않고 그냥 튕겨 나옵니다.
+                Debug.Log("열쇠가 부족해서 열 수 없습니다!");
             }
         }
     }

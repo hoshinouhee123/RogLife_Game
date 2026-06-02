@@ -98,34 +98,39 @@ public class RoomController : MonoBehaviour
 
     // ★ [새로 추가] 문 이미지를 바꿔주는 함수
     // ★ [수정됨] 문 이미지를 바꿔주고 잠금 설정까지 하는 함수
+    // ★ [수정됨] 문 이미지를 바꿔주고 잠금/벽 설정까지 하는 함수
     private void UpdateDoorSprite(GameObject doorObj, SpriteRenderer sr, RoomController neighbor)
     {
         if (sr == null || neighbor == null || doorObj == null) return;
 
         Door doorScript = doorObj.GetComponent<Door>();
-        doorScript.isLocked = false; // 기본은 안 잠김
+        doorScript.isLocked = false;
 
-        // 2층 이상이고, 아이템방이거나 상점방이면 잠금!
+        // ★ [새로 추가] 기본적으로 모든 문은 통과 가능하게(Trigger) 둡니다.
+        doorObj.GetComponent<Collider2D>().isTrigger = true;
+
         bool shouldLock = MapGenerator.Instance.currentFloor >= 2 && (neighbor.isItemRoom || neighbor.isShopRoom);
 
         if (shouldLock)
         {
-            // ==========================================
-            // ★ [여기 수정됨!] 방 종류에 따라 다른 잠긴 문 이미지 적용
-            // ==========================================
             if (neighbor.isItemRoom)
             {
-                sr.sprite = lockedItemDoorSprite; // 잠긴 황금방 문으로 변경
-                doorScript.unlockedSprite = itemDoorSprite; // 열쇠 쓰면 황금문으로 변함
+                sr.sprite = lockedItemDoorSprite;
+                doorScript.unlockedSprite = itemDoorSprite;
             }
             else if (neighbor.isShopRoom)
             {
-                sr.sprite = lockedShopDoorSprite; // 잠긴 상점 문으로 변경
-                doorScript.unlockedSprite = shopDoorSprite; // 열쇠 쓰면 상점문으로 변함
+                sr.sprite = lockedShopDoorSprite;
+                doorScript.unlockedSprite = shopDoorSprite;
             }
 
             doorScript.isLocked = true;
             doorScript.doorSpriteRenderer = sr;
+
+            // ==========================================
+            // ★ [핵심] 잠긴 문은 물리적인 단단한 '벽'으로 만들어버림! (통과 불가)
+            // ==========================================
+            doorObj.GetComponent<Collider2D>().isTrigger = false;
         }
         else
         {
