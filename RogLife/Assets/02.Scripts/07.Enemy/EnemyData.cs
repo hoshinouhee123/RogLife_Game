@@ -73,6 +73,10 @@ public class EnemyData : ScriptableObject
     [Header("최종 보스 설정 (5층)")]
     public bool isFinalBoss = false;          // 체크하면 5층 보스가 됨!
     public GameObject laserBlasterPrefab;     // 방금 만든 초승달 레이저 프리팹
+
+    // ★ [새로 추가된 부분] 떨어질 별 프리팹
+    public GameObject starPrefab;
+
     public float patternCooldown = 4.0f;      // 평타 추격 후 레이저 패턴을 쓰는 주기
 
     [Header("보스 전용 설정")]

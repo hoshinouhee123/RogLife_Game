@@ -39,3 +39,12 @@ MonoBehaviour:
   hitboxOffset: {x: 0.06855774, y: 0.03347778}
   isStealthBoss: 1
   sightAngle: 45
+  isFinalBoss: 0
+  laserBlasterPrefab: {fileID: 0}
+  patternCooldown: 4
+  bossScale: 1.5
+  animUp: []
+  animDown: []
+  animLeft: []
+  animRight: []
+  animFrameTime: 0.15

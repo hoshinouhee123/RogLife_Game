@@ -41,6 +41,7 @@ MonoBehaviour:
   sightAngle: 45
   isFinalBoss: 1
   laserBlasterPrefab: {fileID: 830919567896090066, guid: 5e0085a79e3b6ee49b205c6f4a9a68a0, type: 3}
+  starPrefab: {fileID: 6963041915327152582, guid: eacc222e3276e9e49bd89b4c8340d178, type: 3}
   patternCooldown: 4
   bossScale: 0.7
   animUp:

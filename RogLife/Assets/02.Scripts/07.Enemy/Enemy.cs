@@ -523,20 +523,27 @@ public class Enemy : MonoBehaviour
     // ==========================================
     // ★ 5층 최종 보스 (도플갱어) AI
     // ==========================================
+    // ==========================================
+    // ★ [수정됨] 5층 최종 보스 AI (랜덤 패턴 선택)
+    // ==========================================
     private void HandleFinalBoss()
     {
         if (bossState == BossState.Idle)
         {
-            // 1. 평상시엔 플레이어를 쫓아다님
             Vector2 targetPos = playerTransform.position;
             Vector2 newPos = Vector2.MoveTowards(rb.position, targetPos, enemyData.moveSpeed * Time.fixedDeltaTime);
             rb.MovePosition(newPos);
 
-            // 2. 쿨타임이 다 되면 레이저 패턴 시작!
             finalBossTimer -= Time.fixedDeltaTime;
             if (finalBossTimer <= 0)
             {
-                StartCoroutine(LaserPatternRoutine());
+                // ★ 0과 1 중에서 무작위로 하나를 뽑아 패턴 실행!
+                int randomPattern = Random.Range(0, 2);
+
+                if (randomPattern == 0)
+                    StartCoroutine(LaserPatternRoutine()); // 기존 상하좌우 레이저
+                else
+                    StartCoroutine(StarPatternRoutine());  // 새로운 별똥별 십자 레이저
             }
         }
     }
@@ -613,5 +620,56 @@ public class Enemy : MonoBehaviour
             GameObject laser = Instantiate(enemyData.laserBlasterPrefab, pos, rot);
             laser.GetComponent<LaserBlaster>().Setup(enemyData.damage);
         }
+    }
+
+    // ==========================================
+    // ★ [새로 추가됨] 2번째 패턴: 유성우 십자 폭격!
+    // ==========================================
+    private System.Collections.IEnumerator StarPatternRoutine()
+    {
+        bossState = BossState.HiddenPattern;
+
+        mySpriteRenderer.enabled = false;
+        myCollider.enabled = false;
+
+        Vector3 roomCenter = currentRoom.transform.position;
+
+        // 맵 안쪽 무작위 위치에 1초 간격으로 별을 4번 떨어뜨립니다!
+        for (int i = 0; i < 4; i++)
+        {
+            // 이전에 파악한 맵 크기 안에서 무작위 바닥 좌표 뽑기 (-5.5 ~ +5.5 / -2.5 ~ +3.5)
+            float randomX = Random.Range(-5.5f, 5.5f);
+            float randomY = Random.Range(-2.5f, 3.5f);
+            Vector3 targetPos = roomCenter + new Vector3(randomX, randomY, 0);
+
+            if (enemyData.starPrefab != null)
+            {
+                GameObject star = Instantiate(enemyData.starPrefab, targetPos, Quaternion.identity);
+                // 별에게 목표 바닥 좌표와, 터질 때 쓸 초승달 레이저 프리팹을 쥐여줍니다.
+                star.GetComponent<StarFalling>().Setup(targetPos, enemyData.damage, enemyData.laserBlasterPrefab);
+            }
+
+            yield return new WaitForSeconds(1.0f); // 1초 대기 후 다음 별 떨어짐
+        }
+
+        // 4개의 별이 다 떨어지고, 마지막 십자 레이저가 완전히 끝날 때까지 넉넉히 대기
+        yield return new WaitForSeconds(2.0f);
+
+        // 🌟 패턴 종료: 중앙에 다시 등장
+        bossState = BossState.Reappearing;
+        transform.position = roomCenter;
+        mySpriteRenderer.enabled = true;
+
+        for (int i = 0; i < 5; i++)
+        {
+            mySpriteRenderer.color = new Color(1, 1, 1, 0.3f);
+            yield return new WaitForSeconds(0.15f);
+            mySpriteRenderer.color = Color.white;
+            yield return new WaitForSeconds(0.15f);
+        }
+
+        myCollider.enabled = true;
+        bossState = BossState.Idle;
+        finalBossTimer = enemyData.patternCooldown;
     }
 }
