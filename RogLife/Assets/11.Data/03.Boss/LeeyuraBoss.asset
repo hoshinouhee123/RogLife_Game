@@ -1,0 +1,62 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6714644bc46b2bb44aa50210c9699579, type: 3}
+  m_Name: LeeyuraBoss
+  m_EditorClassIdentifier: Assembly-CSharp::EnemyData
+  enemyName: "\uC774\uC720\uB77C"
+  enemySprite: {fileID: -4621715251947480898, guid: 0a0a0465445314c449490f93908dd06a, type: 3}
+  maxHealth: 10000
+  moveSpeed: 2
+  damage: 1
+  isShooter: 0
+  enemyBulletPrefab: {fileID: 0}
+  fireRate: 1.5
+  attackRange: 8
+  shootSound: {fileID: 0}
+  isNormalSplitter: 0
+  hitSound: {fileID: 0}
+  deathSound: {fileID: 0}
+  bossDialogues: []
+  bossBgm: {fileID: 0}
+  sfxMixerGroup: {fileID: 0}
+  isDashSplittingBoss: 0
+  dashSpeedMultiplier: 4
+  dashPrepTime: 1
+  stunTime: 2
+  wallCrashDamage: 5
+  deathEffectPrefab: {fileID: 0}
+  useCustomHitbox: 0
+  hitboxRadius: 0.5
+  hitboxOffset: {x: 0, y: 0}
+  isStealthBoss: 0
+  sightAngle: 45
+  isFinalBoss: 1
+  laserBlasterPrefab: {fileID: 830919567896090066, guid: 5e0085a79e3b6ee49b205c6f4a9a68a0, type: 3}
+  patternCooldown: 4
+  bossScale: 0.7
+  animUp:
+  - {fileID: -4759209823863235082, guid: 0a0a0465445314c449490f93908dd06a, type: 3}
+  - {fileID: -4345847329396617132, guid: 0a0a0465445314c449490f93908dd06a, type: 3}
+  - {fileID: -2947977030320210106, guid: 0a0a0465445314c449490f93908dd06a, type: 3}
+  animDown:
+  - {fileID: -4621715251947480898, guid: 0a0a0465445314c449490f93908dd06a, type: 3}
+  - {fileID: 4093394066904613895, guid: 0a0a0465445314c449490f93908dd06a, type: 3}
+  - {fileID: -6650209684176898444, guid: 0a0a0465445314c449490f93908dd06a, type: 3}
+  animLeft:
+  - {fileID: -4621715251947480898, guid: 0a0a0465445314c449490f93908dd06a, type: 3}
+  - {fileID: 4093394066904613895, guid: 0a0a0465445314c449490f93908dd06a, type: 3}
+  - {fileID: -6650209684176898444, guid: 0a0a0465445314c449490f93908dd06a, type: 3}
+  animRight:
+  - {fileID: 3091632805137230556, guid: 0a0a0465445314c449490f93908dd06a, type: 3}
+  - {fileID: 6509159177959505821, guid: 0a0a0465445314c449490f93908dd06a, type: 3}
+  - {fileID: -3239777211435413343, guid: 0a0a0465445314c449490f93908dd06a, type: 3}
+  animFrameTime: 0.15

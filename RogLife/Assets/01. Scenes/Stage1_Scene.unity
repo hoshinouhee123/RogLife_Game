@@ -751,6 +751,37 @@ CanvasGroup:
   m_Interactable: 1
   m_BlocksRaycasts: 1
   m_IgnoreParentGroups: 0
+--- !u!1 &140170812
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 140170813}
+  m_Layer: 0
+  m_Name: "$@\uC784\uC2DC"
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &140170813
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 140170812}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -3.37224, y: -1.27073, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &140928375
 GameObject:
   m_ObjectHideFlags: 0
@@ -3090,7 +3121,7 @@ MonoBehaviour:
     - {fileID: 11400000, guid: 34f70918045e2ca43ac23ffb65340e65, type: 2}
     bosses:
     - {fileID: 11400000, guid: 82876b319c69e984294a0bf90883686a, type: 2}
-    floorBgm: {fileID: 8300000, guid: 91eb10707b9cfd44d89ecef9e7237da9, type: 3}
+    floorBgm: {fileID: 8300000, guid: 4690451a403ee4d4db44960cf37556c3, type: 3}
     roomFloorSprite: {fileID: 21300000, guid: e2e4d10c89a84054a9a56457243b6548, type: 3}
     backgroundPattern:
     - {fileID: 0}
@@ -3118,7 +3149,7 @@ MonoBehaviour:
     - {fileID: 11400000, guid: 34f70918045e2ca43ac23ffb65340e65, type: 2}
     bosses:
     - {fileID: 11400000, guid: 82876b319c69e984294a0bf90883686a, type: 2}
-    floorBgm: {fileID: 8300000, guid: 91eb10707b9cfd44d89ecef9e7237da9, type: 3}
+    floorBgm: {fileID: 8300000, guid: 4690451a403ee4d4db44960cf37556c3, type: 3}
     roomFloorSprite: {fileID: 21300000, guid: e2e4d10c89a84054a9a56457243b6548, type: 3}
     backgroundPattern:
     - {fileID: 0}
@@ -3144,8 +3175,10 @@ MonoBehaviour:
     floorName: "5\uCE35"
     enemies:
     - {fileID: 11400000, guid: 34f70918045e2ca43ac23ffb65340e65, type: 2}
+    - {fileID: 11400000, guid: 0d70d2d58cf9d3240bdbee98509fb4aa, type: 2}
+    - {fileID: 11400000, guid: bf7be9c002ab44a4a96d1949603ef5b4, type: 2}
     bosses:
-    - {fileID: 11400000, guid: 82876b319c69e984294a0bf90883686a, type: 2}
+    - {fileID: 11400000, guid: 9fb023ebef80a0746bf8d5843e5bef08, type: 2}
     floorBgm: {fileID: 8300000, guid: cb6296a07727c6143bd45ac0c8ccdbd9, type: 3}
     roomFloorSprite: {fileID: 21300000, guid: e2e4d10c89a84054a9a56457243b6548, type: 3}
     backgroundPattern:
@@ -6645,7 +6678,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BGMManager
   audioSource: {fileID: 0}
   bgmMixerGroup: {fileID: 6708199575370531869, guid: 4c70c6fcbb7d16746ae68958f86f2bb4, type: 2}
-  bossClearBgm: {fileID: 8300000, guid: 91eb10707b9cfd44d89ecef9e7237da9, type: 3}
+  bossClearBgm: {fileID: 0}
   badEndingBgm: {fileID: 8300000, guid: decc3226975cd824ebd9666ceb73d0cd, type: 3}
 --- !u!4 &1946415942
 Transform:
@@ -7370,3 +7403,4 @@ SceneRoots:
   - {fileID: 669984956}
   - {fileID: 851868669}
   - {fileID: 333136426}
+  - {fileID: 140170813}

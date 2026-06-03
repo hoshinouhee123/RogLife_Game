@@ -265,7 +265,10 @@ public class MapGenerator : MonoBehaviour
                     GameObject spawnedBoss = Instantiate(enemyPrefab, worldPos, Quaternion.identity);
                     Enemy bossScript = spawnedBoss.GetComponent<Enemy>();
                     bossScript.Setup(randomBoss);
-                    spawnedBoss.transform.localScale = new Vector3(2f, 2f, 1f);
+
+                    float scale = randomBoss.bossScale;
+                    spawnedBoss.transform.localScale = new Vector3(scale, scale, 1f);
+
                     bossScript.currentRoom = controller;
                     controller.enemiesInRoom.Add(bossScript);
                 }

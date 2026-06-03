@@ -68,4 +68,21 @@ public class EnemyData : ScriptableObject
     [Header("보스 특수 기믹 (은신 & 시야)")]
     public bool isStealthBoss = false;       // 체크하면 은신 보스가 됩니다.
     public float sightAngle = 45f;           // 플레이어의 시야각 (45도면 총 90도 부채꼴
+
+    // [기존 코드 아래에 추가]
+    [Header("최종 보스 설정 (5층)")]
+    public bool isFinalBoss = false;          // 체크하면 5층 보스가 됨!
+    public GameObject laserBlasterPrefab;     // 방금 만든 초승달 레이저 프리팹
+    public float patternCooldown = 4.0f;      // 평타 추격 후 레이저 패턴을 쓰는 주기
+
+    [Header("보스 전용 설정")]
+    public float bossScale = 2f; // ★ 일반 보스는 2, 5층 보스는 1로 설정하세요!
+
+    [Header("이동 애니메이션 (선택)")]
+    // 이 배열에 이미지를 채워 넣으면 걸을 때 자동으로 바뀝니다! (비워두면 안 바뀜)
+    public Sprite[] animUp;
+    public Sprite[] animDown;
+    public Sprite[] animLeft;
+    public Sprite[] animRight;
+    public float animFrameTime = 0.15f; // 프레임 속도
 }

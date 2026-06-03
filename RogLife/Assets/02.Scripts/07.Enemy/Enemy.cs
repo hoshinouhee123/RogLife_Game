@@ -14,8 +14,14 @@ public class Enemy : MonoBehaviour
     public float wakeUpDelay = 1.0f; // 깨어난 후 가만히 쳐다보는 시간 (초)
     private float currentWakeUpDelay = 0f;
 
-    public enum BossState { Idle, PrepDash, Dashing, Stunned }
+    // 기존 BossState에 새로운 상태 3개 추가!
+    public enum BossState { Idle, PrepDash, Dashing, Stunned, HiddenPattern, Reappearing, Invincible }
     public BossState bossState = BossState.Idle;
+
+    // 패턴을 위한 타이머
+    private float finalBossTimer = 0f;
+    private SpriteRenderer mySpriteRenderer;
+    private Collider2D myCollider;
 
     public int splitLevel = 0;
     public float myMaxHealth;       // 복제될 때 전달받기 위해 public으로 변경
@@ -29,6 +35,19 @@ public class Enemy : MonoBehaviour
     public GameObject coinPrefab;       // 떨어뜨릴 코인 프리팹
     [Range(0, 100)]
     public float coinDropChance = 50f;  // 코인 드랍 확률 (기본 50%)
+
+    // [변수 선언부 쪽에 추가]
+    [Header("레이저 패턴 스폰 위치 (자식 오브젝트 연결)")]
+    public Transform[] pattern1_Lasers;
+    public Transform[] pattern2_Lasers;
+    public Transform[] pattern3_Lasers;
+    public Transform[] pattern4_Lasers;
+
+    // [변수 선언부에 추가]
+    private Vector2 lastPos;
+    private Sprite[] currentAnim;
+    private int animFrame = 0;
+    private float animTimer = 0f;
 
     // ★ [추가됨] 열쇠 드랍 설정
     public GameObject keyPrefab;
@@ -79,6 +98,10 @@ public class Enemy : MonoBehaviour
         // ==========================================
 
         isAwake = false;
+
+        mySpriteRenderer = GetComponent<SpriteRenderer>();
+        myCollider = GetComponent<Collider2D>();
+        finalBossTimer = data.patternCooldown; // 패턴 쿨타임 장전
     }
 
     public void WakeUp()
@@ -88,22 +111,54 @@ public class Enemy : MonoBehaviour
         currentWakeUpDelay = wakeUpDelay;
     }
 
-    // ★ [새로 추가됨] 대쉬할 때 팽이처럼 빙글빙글 도는 시각적 연출!
+    // [Update() 함수 전체를 아래 코드로 덮어쓰기]
     void Update()
     {
         if (!isAwake || enemyData == null) return;
 
+        // 1. 대쉬 보스 회전 연출 (기존 코드)
         if (enemyData.isDashSplittingBoss)
         {
-            if (bossState == BossState.Dashing)
+            if (bossState == BossState.Dashing) transform.Rotate(0, 0, 1500f * Time.deltaTime);
+            else transform.rotation = Quaternion.Lerp(transform.rotation, Quaternion.identity, 15f * Time.deltaTime);
+        }
+
+        // ==========================================
+        // ★ 2. [새로 추가] 상하좌우 걷는 애니메이션 재생!
+        // ==========================================
+        // 애니메이션 이미지가 1개라도 등록되어 있고, 숨어있지 않을 때만 작동
+        if (enemyData.animDown != null && enemyData.animDown.Length > 0 && bossState != BossState.HiddenPattern)
+        {
+            Vector2 moveVelocity = (Vector2)transform.position - lastPos;
+            lastPos = transform.position;
+
+            if (moveVelocity.sqrMagnitude > 0.0001f) // 찌끔이라도 움직이고 있다면?
             {
-                // Z축을 기준으로 초당 1500도 속도로 미친듯이 회전
-                transform.Rotate(0, 0, 1500f * Time.deltaTime);
+                // 가로 이동 vs 세로 이동 비교
+                if (Mathf.Abs(moveVelocity.x) > Mathf.Abs(moveVelocity.y))
+                {
+                    currentAnim = moveVelocity.x > 0 ? enemyData.animRight : enemyData.animLeft;
+                }
+                else
+                {
+                    currentAnim = moveVelocity.y > 0 ? enemyData.animUp : enemyData.animDown;
+                }
+
+                // 타이머에 맞춰 이미지(프레임) 갈아 끼우기
+                animTimer += Time.deltaTime;
+                if (animTimer >= enemyData.animFrameTime)
+                {
+                    animTimer = 0f;
+                    animFrame++;
+                    if (animFrame >= currentAnim.Length) animFrame = 0;
+                    GetComponent<SpriteRenderer>().sprite = currentAnim[animFrame];
+                }
             }
-            else
+            else // 가만히 멈춰있을 때
             {
-                // 대쉬가 끝나면 다시 똑바로 서도록 부드럽게 복구
-                transform.rotation = Quaternion.Lerp(transform.rotation, Quaternion.identity, 15f * Time.deltaTime);
+                animFrame = 0;
+                if (currentAnim != null && currentAnim.Length > 0)
+                    GetComponent<SpriteRenderer>().sprite = currentAnim[0]; // 기본 서 있는 포즈
             }
         }
     }
@@ -112,14 +167,9 @@ public class Enemy : MonoBehaviour
     {
         if (!isAwake || enemyData == null || playerTransform == null) return;
 
-        // ★ [추가됨] 깨어난 직후 1초 동안은 아무 행동도 하지 않고 멈춰있습니다!
-        if (currentWakeUpDelay > 0)
-        {
-            currentWakeUpDelay -= Time.fixedDeltaTime;
-            return;
-        }
-
-        if (enemyData.isDashSplittingBoss) HandleDashBoss();
+        // ★ [수정됨] 최종 보스 로직 추가
+        if (enemyData.isFinalBoss) HandleFinalBoss();
+        else if (enemyData.isDashSplittingBoss) HandleDashBoss();
         else if (enemyData.isStealthBoss) HandleStealthBoss();
         else HandleNormalEnemy();
     }
@@ -282,8 +332,8 @@ public class Enemy : MonoBehaviour
 
     public void TakeDamage(float damageAmount)
     {
-        // ★ [핵심 방어 1] 이미 죽었거나 분열 중이면 추가 데미지 무시! (다단히트 버그 차단)
-        if (currentHealth <= 0 || hasSplit) return;
+        // 사라졌을 때나 무적 등장 중일 때는 데미지 0!
+        if (currentHealth <= 0 || hasSplit || bossState == BossState.HiddenPattern || bossState == BossState.Reappearing) return;
 
         float actualDamage = Mathf.Min(damageAmount, currentHealth);
         currentHealth -= actualDamage;
@@ -468,5 +518,100 @@ public class Enemy : MonoBehaviour
         Vector2 targetPos = playerTransform.position;
         Vector2 newPos = Vector2.MoveTowards(rb.position, targetPos, currentSpeed * Time.fixedDeltaTime);
         rb.MovePosition(newPos);
+    }
+
+    // ==========================================
+    // ★ 5층 최종 보스 (도플갱어) AI
+    // ==========================================
+    private void HandleFinalBoss()
+    {
+        if (bossState == BossState.Idle)
+        {
+            // 1. 평상시엔 플레이어를 쫓아다님
+            Vector2 targetPos = playerTransform.position;
+            Vector2 newPos = Vector2.MoveTowards(rb.position, targetPos, enemyData.moveSpeed * Time.fixedDeltaTime);
+            rb.MovePosition(newPos);
+
+            // 2. 쿨타임이 다 되면 레이저 패턴 시작!
+            finalBossTimer -= Time.fixedDeltaTime;
+            if (finalBossTimer <= 0)
+            {
+                StartCoroutine(LaserPatternRoutine());
+            }
+        }
+    }
+
+    // ★ [완전히 깔끔해진 레이저 패턴 코루틴!]
+    private System.Collections.IEnumerator LaserPatternRoutine()
+    {
+        bossState = BossState.HiddenPattern;
+
+        mySpriteRenderer.enabled = false;
+        myCollider.enabled = false;
+
+        // 보스를 방 중앙으로 옮깁니다.
+        transform.position = currentRoom.transform.position;
+
+        // ==========================================
+        // ★ [수정됨] t.position 대신, 부모 크기 변화를 무시하는 공식을 사용합니다!
+        // (보스 위치 + 원래 설정해둔 순수한 거리값)
+        // ==========================================
+
+        // ⚔️ 1차 패턴
+        foreach (Transform t in pattern1_Lasers)
+        {
+            Vector3 realPos = transform.position + t.localPosition;
+            SpawnLaser(realPos, t.rotation);
+        }
+        yield return new WaitForSeconds(1.5f);
+
+        // ⚔️ 2차 패턴
+        foreach (Transform t in pattern2_Lasers)
+        {
+            Vector3 realPos = transform.position + t.localPosition;
+            SpawnLaser(realPos, t.rotation);
+        }
+        yield return new WaitForSeconds(1.5f);
+
+        // ⚔️ 3차 패턴
+        foreach (Transform t in pattern3_Lasers)
+        {
+            Vector3 realPos = transform.position + t.localPosition;
+            SpawnLaser(realPos, t.rotation);
+        }
+        yield return new WaitForSeconds(1.5f);
+
+        // ⚔️ 4차 패턴
+        foreach (Transform t in pattern4_Lasers)
+        {
+            Vector3 realPos = transform.position + t.localPosition;
+            SpawnLaser(realPos, t.rotation);
+        }
+        yield return new WaitForSeconds(1.5f);
+
+        // 🌟 패턴 종료
+        bossState = BossState.Reappearing;
+        mySpriteRenderer.enabled = true;
+
+        for (int i = 0; i < 5; i++)
+        {
+            mySpriteRenderer.color = new Color(1, 1, 1, 0.3f);
+            yield return new WaitForSeconds(0.15f);
+            mySpriteRenderer.color = Color.white;
+            yield return new WaitForSeconds(0.15f);
+        }
+
+        myCollider.enabled = true;
+        bossState = BossState.Idle;
+        finalBossTimer = enemyData.patternCooldown;
+    }
+
+    private void SpawnLaser(Vector3 pos, Quaternion rot)
+    {
+        if (enemyData.laserBlasterPrefab != null)
+        {
+            GameObject laser = Instantiate(enemyData.laserBlasterPrefab, pos, rot);
+            laser.GetComponent<LaserBlaster>().Setup(enemyData.damage);
+        }
     }
 }
