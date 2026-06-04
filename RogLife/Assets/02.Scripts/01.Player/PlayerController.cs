@@ -15,7 +15,7 @@ public class PlayerController : MonoBehaviour
     private Rigidbody2D rb;
     private SpriteRenderer sr;
 
-    private Vector2 input;   // 현재 입력 방향
+    public Vector2 input;   // 현재 입력 방향
     private Vector2 velocity;  // 현재 이동 속도
 
     private Sprite[] currentSprites; // 현재 애니메이션 스프라이트 배열

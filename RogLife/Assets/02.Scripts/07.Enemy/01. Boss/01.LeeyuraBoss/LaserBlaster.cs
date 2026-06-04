@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections;
+using UnityEngine.Audio; // ★ 믹서 사용을 위해 추가
 
 public class LaserBlaster : MonoBehaviour
 {
@@ -13,45 +14,73 @@ public class LaserBlaster : MonoBehaviour
     public float warningTime = 0.8f;
     public float fireDuration = 0.5f;
 
+    // ==========================================
+    // ★ [새로 추가됨] 레이저 발사 효과음
+    // ==========================================
+    [Header("사운드 설정")]
+    public AudioClip fireSound;           // 콰아앙! 하는 레이저 소리
+    public AudioMixerGroup sfxMixerGroup; // SFX 믹서 연결
+
+    // ==========================================
+    // ★ [새로 추가됨] 모든 레이저가 공유하는 '마지막으로 소리 낸 시간' 기억 장치
+    // ==========================================
+    private static float lastSoundTime = -1f;
+
     private float damage = 1f;
 
     private void Start()
     {
-        // ★ [핵심 방어막] 코루틴이 에러로 멈추더라도, 3초 뒤엔 무조건 찌꺼기 없이 파괴됩니다!
         Destroy(gameObject, warningTime + fireDuration + 0.5f);
     }
 
-    public void Setup(float dmg)
+    // 셋업 시 커스텀 시간을 받도록 수정 (기존과 동일)
+    public void Setup(float dmg, float customWarn = -1f, float customFire = -1f)
     {
         damage = dmg;
+        if (customWarn > 0) warningTime = customWarn;
+        if (customFire > 0) fireDuration = customFire;
         StartCoroutine(FireRoutine());
     }
 
     private IEnumerator FireRoutine()
     {
-        // 1. 초기화 (두 번째 쏠 때 투명해지는 버그 완벽 방지)
         laserCollider.enabled = false;
         laserRenderer.gameObject.SetActive(false);
         moonRenderer.color = Color.white;
 
         warningRenderer.gameObject.SetActive(true);
-        warningRenderer.color = new Color(1f, 0f, 0f, 0.4f); // 반투명 빨강
+        warningRenderer.color = new Color(1f, 0f, 0f, 0.4f);
 
-        // 2. 경고 대기
         yield return new WaitForSeconds(warningTime);
 
-        // 3. 발사!
         if (CameraShake.Instance != null) CameraShake.Instance.ShakeCamera(0.2f, 0.3f);
 
-        warningRenderer.gameObject.SetActive(false); // 경고선 끄기
-        laserRenderer.gameObject.SetActive(true);    // 진짜 레이저 켜기
-        laserRenderer.color = Color.white;           // 색상 100%
-        laserCollider.enabled = true;                // 피격 판정 켜기
+        warningRenderer.gameObject.SetActive(false);
+        laserRenderer.gameObject.SetActive(true);
+        laserRenderer.color = Color.white;
+        laserCollider.enabled = true;
 
-        // 4. 레이저 유지
+        // ==========================================
+        // ★ [수정됨] 방금(0.1초 이내에) 누군가 소리를 냈는지 검사합니다!
+        // ==========================================
+        if (fireSound != null && Time.unscaledTime > lastSoundTime + 0.1f)
+        {
+            // 내가 소리를 냈다고 시간을 기록함 (나머지 3개는 이 기록을 보고 0.1초간 침묵함)
+            lastSoundTime = Time.unscaledTime;
+
+            GameObject audioObj = new GameObject("LaserAudio");
+            audioObj.transform.position = transform.position;
+            AudioSource source = audioObj.AddComponent<AudioSource>();
+            source.clip = fireSound;
+            source.spatialBlend = 0f;
+            if (sfxMixerGroup != null) source.outputAudioMixerGroup = sfxMixerGroup;
+            source.Play();
+            Destroy(audioObj, fireSound.length);
+        }
+        // ==========================================
+
         yield return new WaitForSeconds(fireDuration);
 
-        // 5. 스르륵 사라지기
         laserCollider.enabled = false;
         float fadeTimer = 0f;
         while (fadeTimer < 0.2f)
@@ -59,20 +88,16 @@ public class LaserBlaster : MonoBehaviour
             fadeTimer += Time.deltaTime;
             float alpha = Mathf.Lerp(1f, 0f, fadeTimer / 0.2f);
             moonRenderer.color = new Color(1f, 1f, 1f, alpha);
-            laserRenderer.color = new Color(1f, 1f, 1f, alpha); // 레이저도 서서히 투명
+            laserRenderer.color = new Color(1f, 1f, 1f, alpha);
             yield return null;
         }
 
-        // 투명해지면 즉시 파괴
         Destroy(gameObject);
     }
 
     private void OnTriggerStay2D(Collider2D collision)
     {
-        // 트리거에 머무는 동안 플레이어에게 데미지
         if (collision.CompareTag("Player"))
-        {
             collision.GetComponent<Player>().TakeDamage(Mathf.RoundToInt(damage));
-        }
     }
 }

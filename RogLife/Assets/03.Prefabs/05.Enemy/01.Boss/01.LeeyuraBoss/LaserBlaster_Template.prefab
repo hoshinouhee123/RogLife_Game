@@ -54,6 +54,8 @@ MonoBehaviour:
   laserCollider: {fileID: 2342964218046689617}
   warningTime: 0.8
   fireDuration: 0.5
+  fireSound: {fileID: 8300000, guid: 3bb371f595e14d94880f4db5955fe8a3, type: 3}
+  sfxMixerGroup: {fileID: 973380146946736083, guid: 4c70c6fcbb7d16746ae68958f86f2bb4, type: 2}
 --- !u!50 &4417747374825419367
 Rigidbody2D:
   serializedVersion: 5
@@ -207,7 +209,7 @@ BoxCollider2D:
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: 0, y: -0.0052549243}
+  m_Offset: {x: 0, y: -0.0035331473}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.5, y: 0.5}
@@ -217,7 +219,7 @@ BoxCollider2D:
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 0.64, y: 0.41793895}
+  m_Size: {x: 0.64, y: 0.36284238}
   m_EdgeRadius: 0
 --- !u!1 &4435774685255592453
 GameObject:

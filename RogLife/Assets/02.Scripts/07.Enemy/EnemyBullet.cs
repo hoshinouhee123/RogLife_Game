@@ -7,11 +7,20 @@ public class EnemyBullet : MonoBehaviour
     private float damage;
     private Vector2 direction;
 
-    public void Setup(Vector2 dir, float dmg)
+    // ★ [수정됨] customSpeed를 추가로 받습니다. (기본값은 -1)
+    // 숫자를 안 넣으면 프리팹 원래 속도를 쓰고, 숫자를 넣으면 그 속도로 날아갑니다!
+    public void Setup(Vector2 dir, float dmg, float customSpeed = -1f)
     {
         direction = dir.normalized;
         damage = dmg;
-        Destroy(gameObject, lifeTime); // 일정 시간 후 파괴
+
+        // ★ [추가됨] 커스텀 속도가 들어왔다면 덮어쓰기!
+        if (customSpeed > 0f)
+        {
+            speed = customSpeed;
+        }
+
+        Destroy(gameObject, lifeTime);
     }
 
     void Update()

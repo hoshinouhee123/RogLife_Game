@@ -18,10 +18,26 @@ public class Enemy : MonoBehaviour
     public enum BossState { Idle, PrepDash, Dashing, Stunned, HiddenPattern, Reappearing, Invincible }
     public BossState bossState = BossState.Idle;
 
+    // ★ [새로 추가된 변수] 방금 쓴 패턴 번호를 기억합니다. (-1은 아직 안 썼다는 뜻)
+    private int lastPattern = -1;
+
+    // ==========================================
+    // ★ [새로 추가된 변수들] 패턴 제비뽑기 주머니!
+    // ==========================================
+    private System.Collections.Generic.List<int> patternPool = new System.Collections.Generic.List<int>();
+    private bool isFirstCycle = true; // 첫 번째 사이클(처음)인지 확인하는 스위치
+
     // 패턴을 위한 타이머
     private float finalBossTimer = 0f;
     private SpriteRenderer mySpriteRenderer;
     private Collider2D myCollider;
+
+    // [변수 선언부 쪽에 추가]
+    private GameObject currentBlackFrame; // 방을 덮어줄 검은색 테두리
+
+    // ★ [새로 추가됨] 숨겨둔 옆 방들을 기억할 리스트
+    private System.Collections.Generic.List<GameObject> hiddenRooms = new System.Collections.Generic.List<GameObject>();
+
 
     public int splitLevel = 0;
     public float myMaxHealth;       // 복제될 때 전달받기 위해 public으로 변경
@@ -53,8 +69,11 @@ public class Enemy : MonoBehaviour
     public GameObject keyPrefab;
     [Range(0, 100)] public float keyDropChance = 10f; // 일반 몹은 10% 정도로 낮게!
 
+
     // [기존 변수 아래에 추가]
     private float fireTimer = 0f; // 원거리 몹 사격 쿨타임 타이머
+
+    private bool isPhase2 = false; // 체력 50% 이하 확인용 스위치
 
     void Awake()
     {
@@ -359,6 +378,16 @@ public class Enemy : MonoBehaviour
                 Split();
             }
         }
+
+        // ==========================================
+        // ★ [새로 추가됨] 5층 보스 체력 50% 이하 진입 체크!
+        // ==========================================
+        if (enemyData.isFinalBoss && !isPhase2 && currentHealth <= myMaxHealth * 0.5f)
+        {
+            isPhase2 = true;
+            // 즉시 새로운 패턴 주머니를 섞도록 유도합니다.
+            patternPool.Clear();
+        }
     }
 
     private void Split()
@@ -445,6 +474,25 @@ public class Enemy : MonoBehaviour
         Destroy(gameObject);
     }
 
+    // [Enemy.cs 맨 아래쪽, OnDestroy 함수 덮어쓰기]
+    private void OnDestroy()
+    {
+        if (Camera.main != null) Camera.main.transform.rotation = Quaternion.Euler(0, 0, 0);
+        if (currentBlackFrame != null) Destroy(currentBlackFrame);
+
+        // ★ 보스가 죽어서 스크립트가 파괴될 때, 꺼져있던 맵이 있다면 전부 강제로 켜줍니다!
+        if (hiddenRooms != null)
+        {
+            foreach (var obj in hiddenRooms)
+            {
+                if (obj != null) obj.SetActive(true);
+            }
+        }
+        if (MapGenerator.Instance != null && MapGenerator.Instance.backgroundTilemap != null)
+        {
+            MapGenerator.Instance.backgroundTilemap.gameObject.SetActive(true);
+        }
+    }
     private void PlaySoundWithMixer(AudioClip clip)
     {
         if (clip == null) return;
@@ -521,10 +569,7 @@ public class Enemy : MonoBehaviour
     }
 
     // ==========================================
-    // ★ 5층 최종 보스 (도플갱어) AI
-    // ==========================================
-    // ==========================================
-    // ★ [수정됨] 5층 최종 보스 AI (랜덤 패턴 선택)
+    // ★ 5층 최종 보스 AI (테트리스식 셔플 백 시스템)
     // ==========================================
     private void HandleFinalBoss()
     {
@@ -537,81 +582,56 @@ public class Enemy : MonoBehaviour
             finalBossTimer -= Time.fixedDeltaTime;
             if (finalBossTimer <= 0)
             {
-                // ★ 0과 1 중에서 무작위로 하나를 뽑아 패턴 실행!
-                int randomPattern = Random.Range(0, 2);
+                // ==========================================
+                // ★ [핵심] 패턴 주머니(Pool)가 비어있으면 새로 채웁니다!
+                // ==========================================
+                if (patternPool.Count == 0)
+                {
+                    if (isFirstCycle)
+                    {
+                        patternPool = new System.Collections.Generic.List<int>() { 1, 2, 3, 4, 0 };
+                        isFirstCycle = false;
+                    }
+                    else
+                    {
+                        // ★ [수정됨] 2페이즈(50% 이하)라면 5번 패턴(기억력 레이저) 추가!
+                        if (isPhase2) patternPool = new System.Collections.Generic.List<int>() { 0, 1, 2, 3, 4, 5 };
+                        else patternPool = new System.Collections.Generic.List<int>() { 0, 1, 2, 3, 4 };
 
-                if (randomPattern == 0)
-                    StartCoroutine(LaserPatternRoutine()); // 기존 상하좌우 레이저
-                else
-                    StartCoroutine(StarPatternRoutine());  // 새로운 별똥별 십자 레이저
+                        for (int i = 0; i < patternPool.Count; i++)
+                        {
+                            int temp = patternPool[i];
+                            int randomIndex = Random.Range(i, patternPool.Count);
+                            patternPool[i] = patternPool[randomIndex];
+                            patternPool[randomIndex] = temp;
+                        }
+
+                        if (patternPool[0] == lastPattern)
+                        {
+                            int temp = patternPool[0]; patternPool[0] = patternPool[1]; patternPool[1] = temp;
+                        }
+                    }
+                }
+
+                // ==========================================
+                // ★ 주머니에서 맨 앞(0번) 패턴을 꺼냅니다.
+                // ==========================================
+                int currentPattern = patternPool[0];
+                patternPool.RemoveAt(0); // 꺼낸 건 주머니에서 지움
+                lastPattern = currentPattern; // 방금 쓴 패턴 기억
+
+                // ★ [추가됨] 5번 패턴 분기 추가
+                if (currentPattern == 0) StartCoroutine(ScreenFlipPatternRoutine());
+                else if (currentPattern == 1) StartCoroutine(LaserPatternRoutine());
+                else if (currentPattern == 2) StartCoroutine(StarPatternRoutine());
+                else if (currentPattern == 3) StartCoroutine(SpinPatternRoutine());
+                else if (currentPattern == 4) StartCoroutine(MeteorShowerRoutine());
+                else if (currentPattern == 5) StartCoroutine(MemoryLaserRoutine()); // 6번째 궁극기!
             }
         }
     }
 
-    // ★ [완전히 깔끔해진 레이저 패턴 코루틴!]
-    private System.Collections.IEnumerator LaserPatternRoutine()
-    {
-        bossState = BossState.HiddenPattern;
 
-        mySpriteRenderer.enabled = false;
-        myCollider.enabled = false;
-
-        // 보스를 방 중앙으로 옮깁니다.
-        transform.position = currentRoom.transform.position;
-
-        // ==========================================
-        // ★ [수정됨] t.position 대신, 부모 크기 변화를 무시하는 공식을 사용합니다!
-        // (보스 위치 + 원래 설정해둔 순수한 거리값)
-        // ==========================================
-
-        // ⚔️ 1차 패턴
-        foreach (Transform t in pattern1_Lasers)
-        {
-            Vector3 realPos = transform.position + t.localPosition;
-            SpawnLaser(realPos, t.rotation);
-        }
-        yield return new WaitForSeconds(1.5f);
-
-        // ⚔️ 2차 패턴
-        foreach (Transform t in pattern2_Lasers)
-        {
-            Vector3 realPos = transform.position + t.localPosition;
-            SpawnLaser(realPos, t.rotation);
-        }
-        yield return new WaitForSeconds(1.5f);
-
-        // ⚔️ 3차 패턴
-        foreach (Transform t in pattern3_Lasers)
-        {
-            Vector3 realPos = transform.position + t.localPosition;
-            SpawnLaser(realPos, t.rotation);
-        }
-        yield return new WaitForSeconds(1.5f);
-
-        // ⚔️ 4차 패턴
-        foreach (Transform t in pattern4_Lasers)
-        {
-            Vector3 realPos = transform.position + t.localPosition;
-            SpawnLaser(realPos, t.rotation);
-        }
-        yield return new WaitForSeconds(1.5f);
-
-        // 🌟 패턴 종료
-        bossState = BossState.Reappearing;
-        mySpriteRenderer.enabled = true;
-
-        for (int i = 0; i < 5; i++)
-        {
-            mySpriteRenderer.color = new Color(1, 1, 1, 0.3f);
-            yield return new WaitForSeconds(0.15f);
-            mySpriteRenderer.color = Color.white;
-            yield return new WaitForSeconds(0.15f);
-        }
-
-        myCollider.enabled = true;
-        bossState = BossState.Idle;
-        finalBossTimer = enemyData.patternCooldown;
-    }
 
     private void SpawnLaser(Vector3 pos, Quaternion rot)
     {
@@ -622,22 +642,45 @@ public class Enemy : MonoBehaviour
         }
     }
 
-    // ==========================================
-    // ★ [새로 추가됨] 2번째 패턴: 유성우 십자 폭격!
-    // ==========================================
+    // ⚔️ 1번 패턴: 지정된 위치에서 상하좌우 레이저
+    private System.Collections.IEnumerator LaserPatternRoutine()
+    {
+        bossState = BossState.HiddenPattern;
+
+        if (mySpriteRenderer != null) mySpriteRenderer.enabled = false;
+        if (myCollider != null) myCollider.enabled = false;
+
+        transform.position = currentRoom.transform.position;
+
+        // ★ [방어 코드] 배열에 빈칸이 있어도 에러가 나지 않도록 막아줍니다.
+        if (pattern1_Lasers != null) { foreach (Transform t in pattern1_Lasers) { if (t != null) SpawnLaser(transform.position + t.localPosition, t.rotation); } }
+        yield return new WaitForSeconds(1.5f);
+
+        if (pattern2_Lasers != null) { foreach (Transform t in pattern2_Lasers) { if (t != null) SpawnLaser(transform.position + t.localPosition, t.rotation); } }
+        yield return new WaitForSeconds(1.5f);
+
+        if (pattern3_Lasers != null) { foreach (Transform t in pattern3_Lasers) { if (t != null) SpawnLaser(transform.position + t.localPosition, t.rotation); } }
+        yield return new WaitForSeconds(1.5f);
+
+        if (pattern4_Lasers != null) { foreach (Transform t in pattern4_Lasers) { if (t != null) SpawnLaser(transform.position + t.localPosition, t.rotation); } }
+        yield return new WaitForSeconds(1.5f);
+
+        // 🌟 패턴 종료: 방 정중앙에 등장
+        yield return StartCoroutine(ReappearRoutine());
+    }
+
+    // ⚔️ 2번 패턴: 별똥별 십자 레이저
     private System.Collections.IEnumerator StarPatternRoutine()
     {
         bossState = BossState.HiddenPattern;
 
-        mySpriteRenderer.enabled = false;
-        myCollider.enabled = false;
+        if (mySpriteRenderer != null) mySpriteRenderer.enabled = false;
+        if (myCollider != null) myCollider.enabled = false;
 
         Vector3 roomCenter = currentRoom.transform.position;
 
-        // 맵 안쪽 무작위 위치에 1초 간격으로 별을 4번 떨어뜨립니다!
         for (int i = 0; i < 4; i++)
         {
-            // 이전에 파악한 맵 크기 안에서 무작위 바닥 좌표 뽑기 (-5.5 ~ +5.5 / -2.5 ~ +3.5)
             float randomX = Random.Range(-5.5f, 5.5f);
             float randomY = Random.Range(-2.5f, 3.5f);
             Vector3 targetPos = roomCenter + new Vector3(randomX, randomY, 0);
@@ -645,31 +688,427 @@ public class Enemy : MonoBehaviour
             if (enemyData.starPrefab != null)
             {
                 GameObject star = Instantiate(enemyData.starPrefab, targetPos, Quaternion.identity);
-                // 별에게 목표 바닥 좌표와, 터질 때 쓸 초승달 레이저 프리팹을 쥐여줍니다.
                 star.GetComponent<StarFalling>().Setup(targetPos, enemyData.damage, enemyData.laserBlasterPrefab);
             }
-
-            yield return new WaitForSeconds(1.0f); // 1초 대기 후 다음 별 떨어짐
+            yield return new WaitForSeconds(1.0f);
         }
 
-        // 4개의 별이 다 떨어지고, 마지막 십자 레이저가 완전히 끝날 때까지 넉넉히 대기
         yield return new WaitForSeconds(2.0f);
 
-        // 🌟 패턴 종료: 중앙에 다시 등장
+        // 🌟 패턴 종료
+        yield return StartCoroutine(ReappearRoutine());
+    }
+
+    // ==========================================
+    // ★ 3번 패턴: 회전 십자 레이저 (환영 없이 딱 1바퀴씩만 회전!)
+    // ==========================================
+    private System.Collections.IEnumerator SpinPatternRoutine()
+    {
+        bossState = BossState.HiddenPattern;
+
+        if (mySpriteRenderer != null) mySpriteRenderer.enabled = false;
+        if (myCollider != null) myCollider.enabled = false;
+
+        Vector3 roomCenter = currentRoom.transform.position;
+
+        GameObject laserHub = new GameObject("LaserHub");
+        laserHub.transform.position = roomCenter;
+
+        // 속도가 0이 되어 멈추는 에러 방지
+        float spinSpeed = enemyData.laserSpinSpeed > 0 ? enemyData.laserSpinSpeed : 100f;
+
+        // ★ [핵심] 360f(1바퀴) 도는 시간 계산
+        float spinDuration = 360f / spinSpeed;
+        float totalLaserDuration = (spinDuration * 2f) + 2.0f;
+
+        // 레이저 4개 십자 모양으로 소환
+        for (int i = 0; i < 4; i++)
+        {
+            if (enemyData.laserBlasterPrefab != null)
+            {
+                GameObject laser = Instantiate(enemyData.laserBlasterPrefab, roomCenter, Quaternion.Euler(0, 0, i * 90f));
+                laser.transform.SetParent(laserHub.transform);
+                laser.GetComponent<LaserBlaster>().Setup(enemyData.damage, 1.0f, totalLaserDuration);
+            }
+        }
+
+        // 레이저 스케일 조절 후 1초 대기
+        laserHub.transform.localScale = new Vector3(enemyData.spinLaserScale, enemyData.spinLaserScale, 1f);
+        yield return new WaitForSeconds(1.0f);
+
+        // 🟢 1. 시계방향 회전 (점점 느려지며 정확히 1바퀴-360도)
+        float timer = 0f;
+        float previousAngle = 0f;
+        while (timer < spinDuration)
+        {
+            timer += Time.deltaTime;
+            float t = Mathf.Clamp01(timer / spinDuration);
+            float easeT = Mathf.Sin(t * Mathf.PI / 2f);
+
+            float currentAngle = 360f * easeT;
+
+            float step = currentAngle - previousAngle;
+            if (laserHub != null) laserHub.transform.Rotate(0, 0, -step); // 마이너스가 시계방향
+            previousAngle = currentAngle;
+            yield return null;
+        }
+
+        // 🔴 2. 반시계방향 회전 (점점 빨라지며 정확히 1바퀴-360도)
+        timer = 0f;
+        previousAngle = 0f;
+        while (timer < spinDuration)
+        {
+            timer += Time.deltaTime;
+            float t = Mathf.Clamp01(timer / spinDuration);
+            float easeT = 1f - Mathf.Cos(t * Mathf.PI / 2f);
+
+            float currentAngle = 360f * easeT;
+
+            float step = currentAngle - previousAngle;
+            if (laserHub != null) laserHub.transform.Rotate(0, 0, step); // 플러스가 반시계방향
+            previousAngle = currentAngle;
+            yield return null;
+        }
+
+        if (laserHub != null) Destroy(laserHub);
+        yield return new WaitForSeconds(0.5f);
+
+        // 🌟 패턴 종료 및 재등장
+        yield return StartCoroutine(ReappearRoutine());
+    }
+
+    // ==========================================
+    // ★ [새로 추가] 보스가 무적 상태로 나타나는 기능을 하나로 통일!
+    // (어떤 에러가 나도 무조건 상태를 정상 복구시킵니다)
+    // ==========================================
+    private System.Collections.IEnumerator ReappearRoutine()
+    {
         bossState = BossState.Reappearing;
-        transform.position = roomCenter;
-        mySpriteRenderer.enabled = true;
+        transform.position = currentRoom.transform.position;
+
+        if (mySpriteRenderer != null) mySpriteRenderer.enabled = true;
 
         for (int i = 0; i < 5; i++)
         {
-            mySpriteRenderer.color = new Color(1, 1, 1, 0.3f);
+            if (mySpriteRenderer != null) mySpriteRenderer.color = new Color(1, 1, 1, 0.3f);
             yield return new WaitForSeconds(0.15f);
-            mySpriteRenderer.color = Color.white;
+            if (mySpriteRenderer != null) mySpriteRenderer.color = Color.white;
             yield return new WaitForSeconds(0.15f);
         }
 
-        myCollider.enabled = true;
+        // 완벽하게 상태 복구!
+        if (myCollider != null) myCollider.enabled = true;
         bossState = BossState.Idle;
         finalBossTimer = enemyData.patternCooldown;
+    }
+
+    // ==========================================
+    // ★ 4번 패턴: 화면 반전 (옆방 완벽 차단 업그레이드!)
+    // ==========================================
+    private System.Collections.IEnumerator ScreenFlipPatternRoutine()
+    {
+        bossState = BossState.HiddenPattern;
+        rb.linearVelocity = Vector2.zero;
+
+        // ==========================================
+        // ★ [강력한 해결책 1] 내 방 빼고 다른 모든 방과 배경을 아예 꺼버림!
+        // ==========================================
+        hiddenRooms.Clear();
+        RoomController[] allRooms = FindObjectsOfType<RoomController>();
+        foreach (var room in allRooms)
+        {
+            if (room != currentRoom) // 내가 있는 방이 아니면?
+            {
+                hiddenRooms.Add(room.gameObject); // 리스트에 기억해두고
+                room.gameObject.SetActive(false); // 꺼버림!
+            }
+        }
+
+        // 배경 타일맵(우주)도 꺼버림
+        if (MapGenerator.Instance != null && MapGenerator.Instance.backgroundTilemap != null)
+            MapGenerator.Instance.backgroundTilemap.gameObject.SetActive(false);
+
+        // ==========================================
+        // ★ [강력한 해결책 2] 검은 테두리를 안쪽으로 0.2칸 당겨서 문 틈새마저 완벽 차단!
+        // ==========================================
+        currentBlackFrame = new GameObject("BlackFrame");
+        currentBlackFrame.transform.position = currentRoom.transform.position;
+
+        Texture2D tex = new Texture2D(1, 1);
+        tex.SetPixel(0, 0, Color.white);        //화이트로 수정
+        tex.Apply();
+        Sprite blackSprite = Sprite.Create(tex, new Rect(0, 0, 1, 1), new Vector2(0.5f, 0.5f));
+
+        Vector3[] framePos = { new Vector3(0, 29.8f, 0), new Vector3(0, -29.8f, 0), new Vector3(-33.8f, 0, 0), new Vector3(33.8f, 0, 0) };
+        foreach (Vector3 pos in framePos)
+        {
+            GameObject wall = new GameObject("BlackWall");
+            wall.transform.SetParent(currentBlackFrame.transform);
+            wall.transform.localPosition = pos;
+            wall.transform.localScale = new Vector3(50f, 50f, 1f);
+
+            SpriteRenderer sr = wall.AddComponent<SpriteRenderer>();
+            sr.sprite = blackSprite;
+            sr.color = Color.black;
+            sr.sortingOrder = 32000; // ★ 그 어떤 이미지보다 무조건 덮어버림
+        }
+
+        // --- 화면 회전 시작 ---
+        Camera cam = Camera.main;
+        float flipTime = 1.5f;
+        float timer = 0f;
+
+        while (timer < flipTime)
+        {
+            timer += Time.deltaTime;
+            float t = timer / flipTime;
+            float ease = Mathf.SmoothStep(0f, 1f, t);
+            cam.transform.rotation = Quaternion.Euler(0, 0, 180f * ease);
+            yield return null;
+        }
+        cam.transform.rotation = Quaternion.Euler(0, 0, 180f);
+
+        // 5초간 추격!
+        float chaseTime = 5.0f;
+        timer = 0f;
+        while (timer < chaseTime)
+        {
+            timer += Time.fixedDeltaTime;
+            Vector2 targetPos = playerTransform.position;
+            Vector2 newPos = Vector2.MoveTowards(rb.position, targetPos, enemyData.moveSpeed * Time.fixedDeltaTime);
+            rb.MovePosition(newPos);
+            yield return new WaitForFixedUpdate();
+        }
+
+        // 추격 정지 및 화면 원상 복구
+        rb.linearVelocity = Vector2.zero;
+        timer = 0f;
+        while (timer < flipTime)
+        {
+            timer += Time.deltaTime;
+            float t = timer / flipTime;
+            float ease = Mathf.SmoothStep(0f, 1f, t);
+            cam.transform.rotation = Quaternion.Euler(0, 0, 180f + (180f * ease));
+            yield return null;
+        }
+        cam.transform.rotation = Quaternion.Euler(0, 0, 0);
+
+        if (currentBlackFrame != null) Destroy(currentBlackFrame);
+
+        // ==========================================
+        // ★ 연출 종료: 아까 꺼뒀던 방과 배경을 다시 원상복구!
+        // ==========================================
+        foreach (var obj in hiddenRooms)
+        {
+            if (obj != null) obj.SetActive(true);
+        }
+        hiddenRooms.Clear();
+
+        if (MapGenerator.Instance != null && MapGenerator.Instance.backgroundTilemap != null)
+            MapGenerator.Instance.backgroundTilemap.gameObject.SetActive(true);
+
+        bossState = BossState.Idle;
+        finalBossTimer = enemyData.patternCooldown;
+    }
+
+    // ==========================================
+    // ★ 5번 패턴: 유성우 폭격 (갈수록 빠르고 거세짐)
+    // ==========================================
+    private System.Collections.IEnumerator MeteorShowerRoutine()
+    {
+        bossState = BossState.HiddenPattern;
+        if (mySpriteRenderer != null) mySpriteRenderer.enabled = false;
+        if (myCollider != null) myCollider.enabled = false;
+
+        Vector3 roomCenter = currentRoom.transform.position;
+
+        // ==========================================
+        // ★ [수정됨] 별이 떨어질 범위를 벽보다 안쪽(안전 구역)으로 좁혔습니다!
+        // ==========================================
+        // 알려주신 맵 크기보다 여유 있게 상하좌우 1~1.5칸씩 안쪽으로 당겼습니다.
+        float mapLeft = roomCenter.x - 4.5f;
+        float mapRight = roomCenter.x + 4.5f;
+        float mapBottom = roomCenter.y - 1.5f;
+        float mapTop = roomCenter.y + 2.5f;
+
+        float spawnDelay = 0.6f;
+        float currentFallSpeed = 10f;
+
+        for (int i = 0; i < 20; i++)
+        {
+            // 이제 완벽하게 방 안쪽 바닥에만 별이 떨어집니다.
+            float randomX = Random.Range(mapLeft, mapRight);
+            float targetY = Random.Range(mapBottom, mapTop);
+            Vector3 targetPos = new Vector3(randomX, targetY, 0);
+
+            // 별이 출발할 위치 (화면 완전 위쪽 바깥)
+            Vector3 spawnPos = new Vector3(randomX, roomCenter.y + 12f, 0);
+
+            if (enemyData.meteorPrefab != null)
+            {
+                GameObject meteor = Instantiate(enemyData.meteorPrefab, spawnPos, Quaternion.identity);
+
+                // ★ [수정됨] targetY 대신 targetPos(Vector3) 전체와, 경고 마커 프리팹을 넘겨줍니다!
+                meteor.GetComponent<MeteorStar>().Setup(
+                    currentFallSpeed,
+                    targetPos,
+                    enemyData.damage,
+                    enemyData.meteorFragmentPrefab,
+                    enemyData.meteorWarningPrefab
+                );
+            }
+
+            yield return new WaitForSeconds(spawnDelay);
+
+            spawnDelay = Mathf.Max(0.1f, spawnDelay - 0.03f);
+            currentFallSpeed += 1.5f;
+        }
+
+        // 마지막 별이 파편으로 흩어지고 사라질 때까지 넉넉하게 2초 대기
+        yield return new WaitForSeconds(2.0f);
+
+        // 🌟 패턴 종료
+        yield return StartCoroutine(ReappearRoutine());
+    }
+
+    // ==========================================
+    // ★ 6번 패턴: 기억력 테스트 (진짜 바닥 색상 변경 + 직접 만든 프리팹 정확한 위치 소환)
+    // ==========================================
+    private System.Collections.IEnumerator MemoryLaserRoutine()
+    {
+        bossState = BossState.HiddenPattern;
+        mySpriteRenderer.enabled = false;
+        myCollider.enabled = false;
+
+        Vector3 roomCenter = currentRoom.transform.position;
+
+        int[] colorSequence = new int[5];
+        for (int i = 0; i < 5; i++) colorSequence[i] = Random.Range(0, 2);
+
+        transform.position = roomCenter;
+        mySpriteRenderer.enabled = true;
+        mySpriteRenderer.color = new Color(1, 1, 1, 0.5f);
+
+        yield return new WaitForSeconds(0.5f);
+
+        // ==========================================
+        // ★ [여기 수정됨] roomBgRenderer 대신 floorRenderer를 사용합니다!
+        // ==========================================
+        SpriteRenderer floorBg = currentRoom.floorRenderer;
+        Color originalBgColor = Color.white;
+        if (floorBg != null) originalBgColor = floorBg.color; // 바닥 원래 색 기억
+
+        Color blueColor = new Color(0f, 0.8f, 1f, 1f);
+        Color orangeColor = new Color(1f, 0.5f, 0f, 1f);
+
+        for (int i = 0; i < 5; i++)
+        {
+            // 바닥 색깔만 파랑/주황으로 직접 바꿈
+            if (floorBg != null) floorBg.color = colorSequence[i] == 0 ? blueColor : orangeColor;
+            PlaySoundWithMixer(enemyData.hitSound);
+
+            yield return new WaitForSeconds(0.3f);
+
+            // 원래 색으로 복구
+            if (floorBg != null) floorBg.color = originalBgColor;
+            yield return new WaitForSeconds(0.15f);
+        }
+
+        yield return new WaitForSeconds(0.5f);
+        mySpriteRenderer.enabled = false;
+
+        PlayerController pc = playerTransform.GetComponent<PlayerController>();
+        Player playerScript = playerTransform.GetComponent<Player>();
+
+        // ==========================================
+        // ★ [수정 2] 만든 레이저 프리팹을 오른쪽 끝에서 왼쪽으로 쏘기
+        // ==========================================
+        // 방 중앙에서 오른쪽으로 9칸 간 위치 = 오른쪽 벽 끄트머리 안쪽! (Z축은 0)
+        Vector3 spawnPos = roomCenter + new Vector3(9f, 0f, 0f);
+
+        for (int i = 0; i < 5; i++)
+        {
+            bool isOrange = colorSequence[i] == 1;
+            Color laserColor = isOrange ? new Color(1f, 0.5f, 0f, 0.8f) : new Color(0f, 0.8f, 1f, 0.8f);
+
+            GameObject laserObj = null;
+
+            if (enemyData.memoryLaserPrefab != null)
+            {
+                laserObj = Instantiate(enemyData.memoryLaserPrefab, spawnPos, Quaternion.Euler(0, 0, 180f));
+
+                // ==========================================
+                // ★ [완벽 해결 1] 프리팹에 원래 달려있던 콜라이더를 싹 다 꺼버립니다!
+                // (이제 프리팹 혼자 멋대로 데미지를 주는 버그가 원천 차단됩니다)
+                // ==========================================
+                Collider2D[] cols = laserObj.GetComponentsInChildren<Collider2D>();
+                foreach (var col in cols) col.enabled = false;
+
+                SpriteRenderer[] srs = laserObj.GetComponentsInChildren<SpriteRenderer>();
+                foreach (var sr in srs)
+                {
+                    sr.color = laserColor;
+                    sr.sortingOrder = 30000;
+                }
+
+                if (CameraShake.Instance != null) CameraShake.Instance.ShakeCamera(0.1f, 0.3f);
+                PlaySoundWithMixer(enemyData.deathSound);
+
+                // 레이저가 뻗어나가는 시간 (0.1초) + 유지되는 시간 (0.15초) = 총 0.25초
+                float blastTime = 0.25f;
+                float timer = 0f;
+                bool hitPlayer = false; // 이번 레이저에 맞았는지 기억하는 스위치
+
+                while (timer < blastTime)
+                {
+                    timer += Time.deltaTime;
+
+                    // 0.1초 만에 크기가 쭉 커짐
+                    float scaleX = Mathf.Lerp(0f, 25f, timer / 0.1f);
+                    if (scaleX > 25f) scaleX = 25f; // 최대 크기 고정
+                    laserObj.transform.localScale = new Vector3(scaleX, 15f, 1f);
+
+                    // ==========================================
+                    // ★ [완벽 해결 2] 레이저가 켜져 있는 0.25초 내내 움직임을 계속 감시합니다!
+                    // ==========================================
+                    if (!hitPlayer)
+                    {
+                        bool isMoving = pc != null && pc.input.sqrMagnitude > 0.01f;
+
+                        if (isOrange && !isMoving) // 주황색인데 멈춰있으면 사망!
+                        {
+                            playerScript.TakeDamage(Mathf.RoundToInt(enemyData.damage));
+                            hitPlayer = true;
+                        }
+                        else if (!isOrange && isMoving) // 파란색인데 움직이면 사망!
+                        {
+                            playerScript.TakeDamage(Mathf.RoundToInt(enemyData.damage));
+                            hitPlayer = true;
+                        }
+                    }
+
+                    yield return null;
+                }
+
+                // 레이저 서서히 사라짐
+                float fadeTime = 0.2f;
+                timer = 0f;
+                while (timer < fadeTime)
+                {
+                    timer += Time.deltaTime;
+                    foreach (var sr in srs)
+                    {
+                        sr.color = new Color(laserColor.r, laserColor.g, laserColor.b, Mathf.Lerp(0.8f, 0f, timer / fadeTime));
+                    }
+                    yield return null;
+                }
+
+                Destroy(laserObj);
+            }
+            yield return new WaitForSeconds(0.1f);  // 다음 레이저 발사 간격
+        }
+
+        // 🌟 패턴 종료 및 재등장
+        yield return StartCoroutine(ReappearRoutine());
     }
 }

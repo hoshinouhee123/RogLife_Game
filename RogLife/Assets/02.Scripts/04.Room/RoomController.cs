@@ -62,6 +62,9 @@ public class RoomController : MonoBehaviour
     [Header("방 배경 이미지")]
     public SpriteRenderer roomBgRenderer; // 방 안쪽 바닥/벽을 담당하는 렌더러
 
+    // ★ [새로 추가됨] 패턴 때 색깔만 바꿀 '바닥' 전용 렌더러!
+    public SpriteRenderer floorRenderer;
+
     // ★ [추가됨] 이 방을 플레이어가 직접 밟았는지(가봤는지) 기억하는 변수
     public bool isVisited = false;
 

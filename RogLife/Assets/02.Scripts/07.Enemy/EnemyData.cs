@@ -77,6 +77,36 @@ public class EnemyData : ScriptableObject
     // ★ [새로 추가된 부분] 떨어질 별 프리팹
     public GameObject starPrefab;
 
+    // ★ [새로 추가됨] 3번째 패턴용: 1층 보스 환영
+    public GameObject phantomPrefab;          // 환영 껍데기 프리팹
+    public Sprite phantomSprite;              // 1층 보스의 모습(타이어 등)
+
+    // ★ [새로 추가된 부분] 환영이 스폰될 맵의 오른쪽 끝 좌표!
+    [Tooltip("환영이 나타날 오른쪽 끝 X좌표 거리입니다. (예: 6.5)")]
+    public float phantomSpawnX = 6.5f;
+
+    // ★ [새로 추가된 부분] 레이저 회전 속도 조절용 변수!
+    [Tooltip("레이저 풍차의 회전 속도입니다. (기본: 100)")]
+    public float laserSpinSpeed = 100f;
+
+    // ★ [새로 추가된 부분] 회전하는 레이저 전용 스케일 조절!
+    [Tooltip("회전하는 십자 레이저의 크기(길이와 두께) 배율입니다. (기본 1.0)")]
+    public float spinLaserScale = 0.7f;
+
+    // ==========================================
+    // ★ 5번 패턴 (유성우 폭격)
+    // ==========================================
+    [Header("5번 패턴 (유성우 폭격)")]
+    public GameObject meteorPrefab;
+    public GameObject meteorFragmentPrefab;
+
+    // ★ [새로 추가된 부분] 바닥에 깔아둘 경고 원형 프리팹
+    public GameObject meteorWarningPrefab;
+
+    [Header("6번 패턴 (기억력 레이저)")]
+    // ★ [새로 추가됨] 작성자님이 직접 만드신 거대한 레이저 프리팹을 여기에 넣으세요!
+    public GameObject memoryLaserPrefab;
+
     public float patternCooldown = 4.0f;      // 평타 추격 후 레이저 패턴을 쓰는 주기
 
     [Header("보스 전용 설정")]
@@ -89,4 +119,6 @@ public class EnemyData : ScriptableObject
     public Sprite[] animLeft;
     public Sprite[] animRight;
     public float animFrameTime = 0.15f; // 프레임 속도
+
+
 }

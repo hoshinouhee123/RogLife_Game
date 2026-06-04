@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EnemyData
   enemyName: "\uC774\uC720\uB77C"
   enemySprite: {fileID: -4621715251947480898, guid: 0a0a0465445314c449490f93908dd06a, type: 3}
-  maxHealth: 10000
+  maxHealth: 1000
   moveSpeed: 2
   damage: 1
   isShooter: 0
@@ -26,8 +26,8 @@ MonoBehaviour:
   hitSound: {fileID: 0}
   deathSound: {fileID: 0}
   bossDialogues: []
-  bossBgm: {fileID: 0}
-  sfxMixerGroup: {fileID: 0}
+  bossBgm: {fileID: 8300000, guid: 0e7f967c4d065bc42b56b2bff2a3f3d4, type: 3}
+  sfxMixerGroup: {fileID: 6708199575370531869, guid: 4c70c6fcbb7d16746ae68958f86f2bb4, type: 2}
   isDashSplittingBoss: 0
   dashSpeedMultiplier: 4
   dashPrepTime: 1
@@ -42,6 +42,15 @@ MonoBehaviour:
   isFinalBoss: 1
   laserBlasterPrefab: {fileID: 830919567896090066, guid: 5e0085a79e3b6ee49b205c6f4a9a68a0, type: 3}
   starPrefab: {fileID: 6963041915327152582, guid: eacc222e3276e9e49bd89b4c8340d178, type: 3}
+  phantomPrefab: {fileID: 941612314814622907, guid: 19ecee20b3c03cf4e92a6a15ab9aa807, type: 3}
+  phantomSprite: {fileID: 21300000, guid: b369e3d7b0f95d54995c6379644b4c3c, type: 3}
+  phantomSpawnX: 6.5
+  laserSpinSpeed: 50
+  spinLaserScale: 0.2
+  meteorPrefab: {fileID: 5859192499886710741, guid: 5ed5b05c26ac00f45b5ce9918d8e2fc4, type: 3}
+  meteorFragmentPrefab: {fileID: 7474663709034961916, guid: 79977addcfca3494bafafad1d3934dc5, type: 3}
+  meteorWarningPrefab: {fileID: 6936115591035740987, guid: ab41842390a6e67479a072be39c25eff, type: 3}
+  memoryLaserPrefab: {fileID: 830919567896090066, guid: 5e0085a79e3b6ee49b205c6f4a9a68a0, type: 3}
   patternCooldown: 4
   bossScale: 0.7
   animUp:
