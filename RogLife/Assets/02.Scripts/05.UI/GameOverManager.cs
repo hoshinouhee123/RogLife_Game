@@ -49,6 +49,23 @@ public class GameOverManager : MonoBehaviour
         if (isGameOverStarted) return;
         isGameOverStarted = true;
 
+        // ==========================================
+        // ★ [핵심 수정] 크레딧이고 대화고 뭐고 기다릴 것 없이, 
+        // 플레이어가 죽는 그 즉시!! 가장 먼저 업적부터 때려 박습니다!
+        // ==========================================
+        if (AchievementManager.Instance != null)
+        {
+            bool isFloor5 = (MapGenerator.Instance != null && MapGenerator.Instance.currentFloor >= 5);
+            if (isFloor5) AchievementManager.Instance.UnlockAchievement("BadEnding2");
+            else AchievementManager.Instance.UnlockAchievement("BadEnding1");
+        }
+        else
+        {
+            // ★ 만약 해금이 안 된다면 콘솔 창에 뻘건색으로 바로 원인을 알려줍니다!
+            Debug.LogError(" 삐빅! 지금 화면에 AchievementManager가 없습니다!! 메인 메뉴에만 만들어두고 게임 씬에 프리팹을 안 가져다 두신 건 아닌지 확인하세요!");
+        }
+        // ==========================================
+
         StartCoroutine(GameOverRoutine());
     }
 

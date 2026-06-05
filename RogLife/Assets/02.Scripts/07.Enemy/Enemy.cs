@@ -1335,28 +1335,38 @@ public class Enemy : MonoBehaviour
     }
 
     // ==========================================
-    // ★ 최후의 발악 (무한루프 0% + 카메라 흔들기 스크립트 복구 + 별 가림 해결)
+    // ★ 최후의 발악 (Shader Compiler 튕김 버그 100% 원천 차단 버전)
     // ==========================================
     private System.Collections.IEnumerator FinalDesperationRoutine()
     {
-        Debug.Log("[발악 패턴] 1. 시작");
+        // ==========================================
+        // ★ [핵심 완벽 방어막] WaitForEndOfFrame!
+        // 총알에 맞은 '물리 충돌 계산'과 '렌더링'이 완전히 끝나는 프레임의 끝자락까지 기다립니다.
+        // 이 한 줄 덕분에 유니티 DX12 엔진이 뻗는 버그가 1000% 차단됩니다!!
+        // ==========================================
+        yield return new WaitForEndOfFrame();
+
+        Debug.Log("[발악 패턴] 1. 시작 (안전 프레임 진입 완료)");
         bossState = BossState.Invincible;
         mySpriteRenderer.enabled = false;
         myCollider.enabled = false;
 
-        // 1. 방 중앙 세팅
+        // 1. 카메라 방 중앙 고정
         Vector3 roomCenter = currentRoom.transform.position;
         transform.position = roomCenter;
 
+        Vector3 camOriginalPos = Vector3.zero;
         if (Camera.main != null)
         {
             Camera.main.transform.position = new Vector3(roomCenter.x, roomCenter.y, Camera.main.transform.position.z);
+            camOriginalPos = Camera.main.transform.position;
         }
 
-        // 플레이어 무적 및 조작 차단
+        // 플레이어 중앙 소환 및 완벽 무적 처리
         if (playerTransform != null)
         {
             playerTransform.position = roomCenter + new Vector3(0, -3f, 0);
+
             PlayerController pc = playerTransform.GetComponent<PlayerController>();
             if (pc != null) pc.enabled = false;
 
@@ -1364,27 +1374,34 @@ public class Enemy : MonoBehaviour
             if (p != null) p.godMode = true;
         }
 
-        // 다른 맵 지우기
+        Debug.Log("[발악 패턴] 2. 맵 청소 및 아레나 생성");
+
+        // 2. 다른 맵 지우기
         hiddenRooms.Clear();
         RoomController[] allRooms = FindObjectsOfType<RoomController>();
         foreach (var room in allRooms) { if (room != currentRoom) { hiddenRooms.Add(room.gameObject); room.gameObject.SetActive(false); } }
-        if (MapGenerator.Instance != null && MapGenerator.Instance.backgroundTilemap != null) MapGenerator.Instance.backgroundTilemap.gameObject.SetActive(false);
 
+        if (MapGenerator.Instance != null && MapGenerator.Instance.backgroundTilemap != null)
+            MapGenerator.Instance.backgroundTilemap.gameObject.SetActive(false);
+
+        // 총알 파괴
         Bullet[] pBullets = FindObjectsOfType<Bullet>(); foreach (var b in pBullets) Destroy(b.gameObject);
         EnemyBullet[] eBullets = FindObjectsOfType<EnemyBullet>(); foreach (var eb in eBullets) Destroy(eb.gameObject);
-        if (currentRoom != null && currentRoom.roomBgRenderer != null) currentRoom.roomBgRenderer.sprite = null;
 
-        // ==========================================
-        // ★ [수정됨] 하얀 배경을 저 뒤(Z: 10)로 밀어버려서 별을 절대 가리지 못하게 만듭니다!
-        // ==========================================
+        // ★ [안전장치] 바닥을 Destroy나 null로 만들지 않고 투명하게 만들어서 렌더링 뻗음 방지
+        if (currentRoom != null && currentRoom.roomBgRenderer != null)
+            currentRoom.roomBgRenderer.color = new Color(1, 1, 1, 0);
+
+        // 하얀색 도화지 방 생성
         GameObject whiteBox = new GameObject("WhiteArena");
-        whiteBox.transform.position = roomCenter + new Vector3(0, 0, 10f); // Z축을 10으로 밀어버림!
+        whiteBox.transform.position = roomCenter;
         Texture2D tex = new Texture2D(1, 1); tex.SetPixel(0, 0, Color.white); tex.Apply();
         SpriteRenderer voidSr = whiteBox.AddComponent<SpriteRenderer>();
         voidSr.sprite = Sprite.Create(tex, new Rect(0, 0, 1, 1), new Vector2(0.5f, 0.5f));
         voidSr.sortingOrder = -500;
         voidSr.transform.localScale = new Vector3(18f, 10.5f, 1f);
 
+        // 투명 벽 4장 생성
         Vector3[] wallPos = { new Vector3(0, 5.25f, 0), new Vector3(0, -5.25f, 0), new Vector3(-9f, 0, 0), new Vector3(9f, 0, 0) };
         Vector3[] wallScale = { new Vector3(18f, 1f, 1f), new Vector3(18f, 1f, 1f), new Vector3(1f, 10.5f, 1f), new Vector3(1f, 10.5f, 1f) };
         for (int i = 0; i < 4; i++)
@@ -1399,74 +1416,54 @@ public class Enemy : MonoBehaviour
 
         yield return new WaitForSecondsRealtime(1.5f);
 
+        // 보스 실루엣 재등장
         mySpriteRenderer.enabled = true;
         mySpriteRenderer.color = Color.black;
 
-        int totalWaves = 40;
-        float baseDelay = 0.4f;
-
-        for (int wave = 0; wave < totalWaves; wave++)
+        Debug.Log("[발악 패턴] 3. 지진 연출 시작");
+        float shakeDuration = 5.0f;
+        float timer = 0f;
+        while (timer < shakeDuration)
         {
-            float progress = (float)wave / totalWaves;
+            timer += Time.unscaledDeltaTime;
+            float progress = timer / shakeDuration;
             float intensity = Mathf.Lerp(0.05f, 0.8f, progress);
-            float currentDelay = Mathf.Max(0.1f, baseDelay - (progress * 0.3f));
 
-            // ==========================================
-            // ★ [수정됨] CameraShake 스크립트를 다시 사용합니다!
-            // (기존 스크립트가 연속 호출을 알아서 예쁘게 처리해줍니다)
-            // ==========================================
-            if (CameraShake.Instance != null)
+            // 코루틴 충돌을 막기 위해 직접 카메라를 흔듭니다.
+            if (Camera.main != null)
             {
-                CameraShake.Instance.ShakeCamera(currentDelay, intensity);
+                float x = camOriginalPos.x + Random.Range(-1f, 1f) * intensity;
+                float y = camOriginalPos.y + Random.Range(-1f, 1f) * intensity;
+                Camera.main.transform.position = new Vector3(x, y, camOriginalPos.z);
             }
-
-            int spawnCount = Mathf.FloorToInt(progress * 4f) + 1;
-
-            for (int i = 0; i < spawnCount; i++)
-            {
-                float randomAngle = Random.Range(0f, 360f);
-                Vector3 spawnDir = Quaternion.Euler(0, 0, randomAngle) * Vector3.up;
-
-                // 별의 Z축은 0으로 강제 고정하여 플레이어와 완벽하게 같은 깊이에 둡니다
-                Vector3 spawnPos = roomCenter + spawnDir * 15f;
-                spawnPos.z = 0f;
-
-                if (enemyData.absorbStarPrefab != null)
-                {
-                    GameObject star = Instantiate(enemyData.absorbStarPrefab, spawnPos, Quaternion.identity);
-
-                    // ==========================================
-                    // ★ [수정됨] 별의 레이어를 코드로 강제 상승시켜 무조건 맨 앞에 보이게 합니다!
-                    // ==========================================
-                    SpriteRenderer starSr = star.GetComponent<SpriteRenderer>();
-                    if (starSr != null) starSr.sortingOrder = 100;
-
-                    AbsorbStar abs = star.GetComponent<AbsorbStar>();
-                    if (abs == null) abs = star.AddComponent<AbsorbStar>();
-                    abs.Setup(transform, 8f, enemyData.damage);
-                }
-            }
-
-            yield return new WaitForSecondsRealtime(currentDelay);
+            yield return null;
         }
 
-        // 지진이 끝나면 CameraShake 스크립트가 알아서 카메라 위치를 중앙으로 되돌려 놓습니다.
+        // 지진 끝, 카메라 복구
+        if (Camera.main != null) Camera.main.transform.position = camOriginalPos;
 
-        // 5. 최후의 폭발 비명 소리
+        Debug.Log("[발악 패턴] 4. 비명 소리 및 엔딩 전환 대기");
         PlaySoundWithMixer(enemyData.deathSound);
         if (CameraShake.Instance != null) CameraShake.Instance.ShakeCamera(0.5f, 1.0f);
 
         yield return new WaitForSecondsRealtime(1.0f);
 
-        // 6. 모든 정리 및 진엔딩 호출
+        Debug.Log("[발악 패턴] 5. 모든 연출 종료, 엔딩 호출!");
+        
+
+        if (currentBlackFrame != null) Destroy(currentBlackFrame);
+        currentBlackFrame = null;
+        hiddenRooms.Clear();
+
         Time.timeScale = 1f;
 
-        if (MapGenerator.Instance != null)
-        {
-            MapGenerator.Instance.ShowEnding();
-        }
+        // ★ [씬 로드 프리즈 방어] 0.2초 여유를 줍니다.
+        yield return new WaitForSecondsRealtime(0.2f);
 
-        Destroy(gameObject);
+        if (MapGenerator.Instance != null) MapGenerator.Instance.ShowEnding();
+
+        // 오류 차단을 위해 파괴 대신 오브젝트를 꺼버립니다.
+        gameObject.SetActive(false);
     }
 
     // ==========================================

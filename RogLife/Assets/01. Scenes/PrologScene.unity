@@ -153,14 +153,26 @@ MonoBehaviour:
     characterPortrait: {fileID: 0}
     sentence: "(\uB208\uC744 \uB5A0\uBCF4\uB2C8 \uC54C \uC218 \uC5C6\uB294 \uACF3\uC5D0
       \uC11C\uC788\uC5C8\uB2E4.)"
+    useGlitch: 0
+    glitchPortrait: {fileID: 0}
+    glitchSentence: 
+    fullScreenCG: {fileID: 0}
   - speakerName: "\uC774\uC720\uB77C"
     characterPortrait: {fileID: 21300000, guid: 39918550647d55444bbc71b6cffad1e0, type: 3}
     sentence: "\uC5EC\uAE34 \uC5B4\uB514..? \uC544\uBB34\uAC83\uB3C4 \uAE30\uC5B5\uC774
       \uB098\uC9C8 \uC54A\uC544..."
+    useGlitch: 0
+    glitchPortrait: {fileID: 0}
+    glitchSentence: 
+    fullScreenCG: {fileID: 0}
   - speakerName: "\uC774\uC720\uB77C"
     characterPortrait: {fileID: 21300000, guid: 39918550647d55444bbc71b6cffad1e0, type: 3}
     sentence: "\uC0AC\uBC29\uC774 \uC804\uBD80 \uBC24\uD558\uB298 \uAC19\uC740 \uACF5\uAC04\uC774\uC57C...
       \uC77C\uB2E8\uC740 \uCD9C\uAD6C\uB97C \uCC3E\uC544\uBCF4\uC790."
+    useGlitch: 0
+    glitchPortrait: {fileID: 0}
+    glitchSentence: 
+    fullScreenCG: {fileID: 0}
   triggerOnlyOnce: 1
 --- !u!4 &14181313
 Transform:
@@ -292205,10 +292217,18 @@ MonoBehaviour:
   - speakerName: "\uC774\uC720\uB77C"
     characterPortrait: {fileID: 21300000, guid: 39918550647d55444bbc71b6cffad1e0, type: 3}
     sentence: "\uD558\uC580 \uB124\uBAA8\uB2E4"
+    useGlitch: 0
+    glitchPortrait: {fileID: 0}
+    glitchSentence: 
+    fullScreenCG: {fileID: 0}
   - speakerName: "\uC774\uC720\uB77C"
     characterPortrait: {fileID: 21300000, guid: 87780f5fa06156649bf2816ac0e2c341, type: 3}
     sentence: "\uC73C\uC544\uC544\uC544\uC544\uC544 \uC0C1\uC790 \uACF5\uD3EC\uC99D
       \u3137\u3137\u3137\u3137\u3137"
+    useGlitch: 0
+    glitchPortrait: {fileID: 0}
+    glitchSentence: 
+    fullScreenCG: {fileID: 0}
   nextSceneName: 
 --- !u!1 &753709807
 GameObject:
@@ -292589,6 +292609,10 @@ MonoBehaviour:
     characterPortrait: {fileID: 21300000, guid: 39918550647d55444bbc71b6cffad1e0, type: 3}
     sentence: "(\uBB34\uC5B8\uAC00\uC758 \uD798\uC774 \uB354 \uC774\uC0C1 \uC9C0\uB098\uAC00\uC9C0
       \uBABB\uD558\uB3C4\uB85D \uB9CC\uB4E4\uACE0 \uC788\uB2E4.)"
+    useGlitch: 0
+    glitchPortrait: {fileID: 0}
+    glitchSentence: 
+    fullScreenCG: {fileID: 0}
   pushDir: 2
   pushDistance: 0.5
 --- !u!61 &1181676266
@@ -292687,6 +292711,10 @@ MonoBehaviour:
     characterPortrait: {fileID: 21300000, guid: 39918550647d55444bbc71b6cffad1e0, type: 3}
     sentence: "(\uBB34\uC5B8\uAC00\uC758 \uD798\uC774 \uB354 \uC774\uC0C1 \uC9C0\uB098\uAC00\uC9C0
       \uBABB\uD558\uB3C4\uB85D \uB9CC\uB4E4\uACE0 \uC788\uB2E4.)"
+    useGlitch: 0
+    glitchPortrait: {fileID: 0}
+    glitchSentence: 
+    fullScreenCG: {fileID: 0}
   pushDir: 3
   pushDistance: 0.5
 --- !u!61 &1222615822
@@ -292796,6 +292824,10 @@ MonoBehaviour:
     characterPortrait: {fileID: 21300000, guid: 39918550647d55444bbc71b6cffad1e0, type: 3}
     sentence: "(\uBB34\uC5B8\uAC00\uC758 \uD798\uC774 \uB354 \uC774\uC0C1 \uC9C0\uB098\uAC00\uC9C0
       \uBABB\uD558\uB3C4\uB85D \uB9CC\uB4E4\uACE0 \uC788\uB2E4.)"
+    useGlitch: 0
+    glitchPortrait: {fileID: 0}
+    glitchSentence: 
+    fullScreenCG: {fileID: 0}
   pushDir: 1
   pushDistance: 0.5
 --- !u!61 &1309574557
@@ -293041,6 +293073,10 @@ MonoBehaviour:
     characterPortrait: {fileID: 21300000, guid: 39918550647d55444bbc71b6cffad1e0, type: 3}
     sentence: "(\uBB34\uC5B8\uAC00\uC758 \uD798\uC774 \uB354 \uC774\uC0C1 \uC9C0\uB098\uAC00\uC9C0
       \uBABB\uD558\uB3C4\uB85D \uB9CC\uB4E4\uACE0 \uC788\uB2E4.)"
+    useGlitch: 0
+    glitchPortrait: {fileID: 0}
+    glitchSentence: 
+    fullScreenCG: {fileID: 0}
   pushDir: 0
   pushDistance: 0.5
 --- !u!61 &1803400551
@@ -293245,6 +293281,10 @@ MonoBehaviour:
     characterPortrait: {fileID: 21300000, guid: 39918550647d55444bbc71b6cffad1e0, type: 3}
     sentence: "(\uBB38\uC774 \uBCF4\uC778\uB2E4. \uC544\uB9C8, \uC774\uCABD\uC73C\uB85C
       \uB098\uAC08 \uC218 \uC788\uC744 \uAC83 \uAC19\uB2E4.)"
+    useGlitch: 0
+    glitchPortrait: {fileID: 0}
+    glitchSentence: 
+    fullScreenCG: {fileID: 0}
   nextSceneName: Stage1_Scene
 --- !u!61 &1892795540
 BoxCollider2D:
@@ -293292,6 +293332,63 @@ BoxCollider2D:
   m_AutoTiling: 0
   m_Size: {x: 1.341133, y: 1.5463529}
   m_EdgeRadius: 0
+--- !u!1001 &1918333420
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 1523798892034421059, guid: 3f3dae045c007a64cbb6ea5c38106dc8, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 260.11572
+      objectReference: {fileID: 0}
+    - target: {fileID: 1523798892034421059, guid: 3f3dae045c007a64cbb6ea5c38106dc8, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 91.12697
+      objectReference: {fileID: 0}
+    - target: {fileID: 1523798892034421059, guid: 3f3dae045c007a64cbb6ea5c38106dc8, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1523798892034421059, guid: 3f3dae045c007a64cbb6ea5c38106dc8, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1523798892034421059, guid: 3f3dae045c007a64cbb6ea5c38106dc8, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1523798892034421059, guid: 3f3dae045c007a64cbb6ea5c38106dc8, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1523798892034421059, guid: 3f3dae045c007a64cbb6ea5c38106dc8, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1523798892034421059, guid: 3f3dae045c007a64cbb6ea5c38106dc8, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1523798892034421059, guid: 3f3dae045c007a64cbb6ea5c38106dc8, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1523798892034421059, guid: 3f3dae045c007a64cbb6ea5c38106dc8, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5346043746821628919, guid: 3f3dae045c007a64cbb6ea5c38106dc8, type: 3}
+      propertyPath: m_Name
+      value: AchievementSystem
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 3f3dae045c007a64cbb6ea5c38106dc8, type: 3}
 --- !u!1 &2036890225
 GameObject:
   m_ObjectHideFlags: 0
@@ -293639,6 +293736,7 @@ SceneRoots:
   - {fileID: 1708065200}
   - {fileID: 619394802}
   - {fileID: 112674809}
+  - {fileID: 1918333420}
   - {fileID: 1267111576549895266}
   - {fileID: 1413798023}
   - {fileID: 1138067920}
