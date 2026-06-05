@@ -80,4 +80,15 @@ public class BGMManager : MonoBehaviour
         audioSource.loop = true;
         audioSource.Play();
     }
+
+    // ==========================================
+    // ★ [새로 추가됨] 원하는 브금과 반복 여부를 마음대로 틀어주는 만능 함수!
+    // ==========================================
+    public void PlayBGM(AudioClip clip, bool loop)
+    {
+        if (audioSource == null || clip == null) return;
+        audioSource.clip = clip;
+        audioSource.loop = loop;
+        audioSource.Play();
+    }
 }

@@ -74,27 +74,51 @@ public class Player : MonoBehaviour
 
     void Start()
     {
-        currentHealth = maxHealth;
-        sr = GetComponent<SpriteRenderer>();
-        playerController = GetComponent<PlayerController>();
-
-        //테스트용 시작 코인 추가 코드
-        //coinCount += 99;
-
-        // 내 몸에 오디오 소스가 없으면 자동으로 하나 달아줌
-        audioSource = GetComponent<AudioSource>();
-        if (audioSource == null) audioSource = gameObject.AddComponent<AudioSource>();
-
-        if (sfxMixerGroup != null)
+        // ==========================================
+        // ★ [새로 추가됨] 시작할 때 영구 스탯 및 특전 적용!
+        // ==========================================
+        if (PlayerDataManager.Instance != null)
         {
-            audioSource.outputAudioMixerGroup = sfxMixerGroup;
+            PlayerSaveData pd = PlayerDataManager.Instance.saveData;
+
+            // 1. 스탯 강화
+            maxHealth += pd.hpLevel * 1;    // 1업당 최대 체력 +1
+            attackDamage += pd.dmgLevel * 0.5f; // 1업당 공격력 +0.5
+
+            PlayerController pc = GetComponent<PlayerController>();
+            if (pc != null) pc.moveSpeed += pd.spdLevel * 0.5f; // 1업당 속도 +0.5
+
+            // 2. 시작 재화
+            coinCount += pd.startCoinLevel;
+            keyCount += pd.startKeyLevel;
+
+            // 3. 시작 아이템 랜덤 지급! (맵 생성기의 아이템 리스트 활용)
+            if (pd.startItemLevel > 0 && MapGenerator.Instance != null && MapGenerator.Instance.possibleItems.Length > 0)
+            {
+                for (int i = 0; i < pd.startItemLevel; i++)
+                {
+                    ItemData randomItem = MapGenerator.Instance.possibleItems[Random.Range(0, MapGenerator.Instance.possibleItems.Length)];
+
+                    // 스탯 올리기 (연출 없이 조용히 적용)
+                    attackDamage += randomItem.addDamage;
+                    maxHealth += randomItem.addMaxHealth;
+                    if (randomItem.addMoveSpeed > 0 && pc != null) pc.moveSpeed += randomItem.addMoveSpeed;
+                    if (randomItem.decreaseFireRate != 0) { fireRate -= randomItem.decreaseFireRate; if (fireRate < 0.1f) fireRate = 0.1f; }
+                    if (randomItem.isTripleShot) hasTripleShot = true;
+
+                    // UI에 시작 아이템 아이콘 등록
+                    if (ItemUIManager.Instance != null) ItemUIManager.Instance.ShowItemGet(randomItem, 1);
+                }
+            }
         }
 
+        // ==========================================
+
+        currentHealth = maxHealth;
+        sr = GetComponent<SpriteRenderer>();
         UpdateHealthUI();
-
-        UpdateCoinUI(); // 시작할 때 코인 숫자 0으로 띄워주기
-
-        UpdateKeyUI(); // ★ 추가
+        UpdateCoinUI();
+        UpdateKeyUI();
     }
 
     void Update()

@@ -440,13 +440,31 @@ public class MapGenerator : MonoBehaviour
     //  [기존 코드] private void ShowEnding()
     // [수정된 코드] public으로 변경!
     // ==========================================
+    // ==========================================
+    // ★ 마지막 층(5층) 클리어 시 실행되는 엔딩 함수
+    // ==========================================
     public void ShowEnding()
     {
         Debug.Log("게임 클리어! 진엔딩 연출이 시작됩니다!");
 
+        // 1. 진엔딩 업적 해금
         if (AchievementManager.Instance != null)
+        {
             AchievementManager.Instance.UnlockAchievement("TrueEnding");
+        }
 
-        UnityEngine.SceneManagement.SceneManager.LoadScene("GoodEndingScene");
+        // ==========================================
+        // ★ 2. [새로 추가됨] 씬이 넘어가서 플레이어가 사라지기 직전에 영구 지갑으로 코인 송금!
+        // ==========================================
+        GameObject player = GameObject.FindGameObjectWithTag("Player");
+        if (player != null && PlayerDataManager.Instance != null)
+        {
+            int earnedCoins = player.GetComponent<Player>().coinCount;
+            PlayerDataManager.Instance.AddCoins(earnedCoins);
+            Debug.Log($"[진엔딩] 살아서 돌아왔습니다! {earnedCoins}코인을 영구 지갑에 안전하게 저장했습니다!");
+        }
+
+        // 3. 진엔딩 씬으로 이동! (만들어두신 씬 이름을 적어주세요)
+        UnityEngine.SceneManagement.SceneManager.LoadScene("GoodEndingScene"); 
     }
 }

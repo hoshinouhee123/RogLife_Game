@@ -15,14 +15,19 @@ public class GameOverManager : MonoBehaviour
 
     [Header("연출 설정")]
     public float fadeDuration = 2.0f;
-    public DialogueLine[] deathDialogues; // 1~4층 일반 죽음 대화
+    public DialogueLine[] deathDialogues;        // 1~4층 일반 독백
+    public DialogueLine[] floor5DeathDialogues;  // 5층 전용 언니 독백
 
     // ==========================================
-    // ★ [새로 추가됨] 5층 보스전에서 죽었을 때 나올 전용 대화(언니 독백) 칸입니다!
+    // ★ [새로 추가됨] 층별 게임오버 BGM 설정 칸!
     // ==========================================
-    [Header("5층 전용 게임오버")]
-    public DialogueLine[] floor5DeathDialogues;
+    [Header("사운드 설정 (BGM)")]
+    public AudioClip normalDialogueBgm; // 1~4층 대화(독백) 브금
+    public AudioClip floor5DialogueBgm; // 5층 대화(언니) 브금
+    public AudioClip normalCreditBgm;   // 1~4층 크레딧 브금
+    public AudioClip floor5CreditBgm;   // 5층 크레딧 브금
 
+    [Header("크레딧 설정")]
     public float creditsScrollSpeed = 100f;
     public float targetCreditY = 1500f;
     public float waitAfterCredits = 4.0f;
@@ -50,21 +55,15 @@ public class GameOverManager : MonoBehaviour
         isGameOverStarted = true;
 
         // ==========================================
-        // ★ [핵심 수정] 크레딧이고 대화고 뭐고 기다릴 것 없이, 
-        // 플레이어가 죽는 그 즉시!! 가장 먼저 업적부터 때려 박습니다!
+        // ★ [추가됨] 죽을 때 먹은 코인들을 영구 지갑으로 송금!
         // ==========================================
-        if (AchievementManager.Instance != null)
+        GameObject player = GameObject.FindGameObjectWithTag("Player");
+        if (player != null && PlayerDataManager.Instance != null)
         {
-            bool isFloor5 = (MapGenerator.Instance != null && MapGenerator.Instance.currentFloor >= 5);
-            if (isFloor5) AchievementManager.Instance.UnlockAchievement("BadEnding2");
-            else AchievementManager.Instance.UnlockAchievement("BadEnding1");
+            int earnedCoins = player.GetComponent<Player>().coinCount;
+            PlayerDataManager.Instance.AddCoins(earnedCoins);
+            Debug.Log($"죽었지만 {earnedCoins}코인을 영구 지갑에 저장했습니다!");
         }
-        else
-        {
-            // ★ 만약 해금이 안 된다면 콘솔 창에 뻘건색으로 바로 원인을 알려줍니다!
-            Debug.LogError(" 삐빅! 지금 화면에 AchievementManager가 없습니다!! 메인 메뉴에만 만들어두고 게임 씬에 프리팹을 안 가져다 두신 건 아닌지 확인하세요!");
-        }
-        // ==========================================
 
         StartCoroutine(GameOverRoutine());
     }
@@ -88,17 +87,18 @@ public class GameOverManager : MonoBehaviour
 
         yield return new WaitForSecondsRealtime(1.0f);
 
-        // ==========================================
-        // ★ [핵심 추가] 여기서 5층인지 검사해서 대화를 바꿔치기 합니다!
-        // ==========================================
-        DialogueLine[] dialoguesToPlay = deathDialogues; // 기본값은 1~4층 일반 대화
+        // 층수 검사
+        bool isFloor5 = (MapGenerator.Instance != null && MapGenerator.Instance.currentFloor >= 5);
+        DialogueLine[] dialoguesToPlay = isFloor5 ? floor5DeathDialogues : deathDialogues;
 
-        // 맵 생성기를 확인해서 현재 층이 5층(숫자 5)이라면?
-        if (MapGenerator.Instance != null && MapGenerator.Instance.currentFloor >= 5)
-        {
-            dialoguesToPlay = floor5DeathDialogues; // 5층 전용 대화(언니 독백)로 교체!
-        }
         // ==========================================
+        // ★ [대화 BGM 재생] 5층이면 5층 브금을, 아니면 일반 브금을 틉니다!
+        // ==========================================
+        AudioClip dialogueBgmToPlay = isFloor5 ? floor5DialogueBgm : normalDialogueBgm;
+        if (BGMManager.Instance != null && dialogueBgmToPlay != null)
+        {
+            BGMManager.Instance.PlayBGM(dialogueBgmToPlay, true); // 대화 중엔 무한 반복
+        }
 
         if (dialoguesToPlay != null && dialoguesToPlay.Length > 0)
         {
@@ -116,47 +116,36 @@ public class GameOverManager : MonoBehaviour
 
     private IEnumerator CreditsRoutine()
     {
-        // ==========================================
-        // ★ [완벽 수정] 5층에서 죽었는지 확인해서 업적을 다르게 지급합니다!
-        // ==========================================
         bool isFloor5 = (MapGenerator.Instance != null && MapGenerator.Instance.currentFloor >= 5);
 
         if (AchievementManager.Instance != null)
         {
-            if (isFloor5)
-            {
-                // 5층에서 사망 시: 5층 전용 배드엔딩 업적 해금!
-                AchievementManager.Instance.UnlockAchievement("BadEnding2");
-            }
-            else
-            {
-                // 1~4층에서 사망 시: 일반 배드엔딩 업적 해금!
-                AchievementManager.Instance.UnlockAchievement("BadEnding1");
-            }
+            if (isFloor5) AchievementManager.Instance.UnlockAchievement("BadEnding2");
+            else AchievementManager.Instance.UnlockAchievement("BadEnding1");
         }
-        // ==========================================
 
-        if (BGMManager.Instance != null) BGMManager.Instance.PlayBadEndingBGM();
+        // ==========================================
+        // ★ [크레딧 BGM 재생] 5층이면 5층 크레딧 브금을, 아니면 일반 크레딧 브금을 틉니다!
+        // ==========================================
+        AudioClip creditBgmToPlay = isFloor5 ? floor5CreditBgm : normalCreditBgm;
+        if (BGMManager.Instance != null && creditBgmToPlay != null)
+        {
+            BGMManager.Instance.PlayBGM(creditBgmToPlay, false); // 크레딧은 1번만 재생
+        }
 
         creditsPanel.SetActive(true);
 
-        float timer = 0f;
-        // 시간 대신 Y좌표를 검사합니다!
         while (creditsTransform.anchoredPosition.y < targetCreditY)
         {
-            // 엔터 누르면 스킵
             if (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter)) break;
-
             creditsTransform.anchoredPosition += new Vector2(0, creditsScrollSpeed * Time.unscaledDeltaTime);
             yield return null;
         }
 
-        timer = 0f;
+        float timer = 0f;
         while (timer < waitAfterCredits)
         {
-            // 여운을 즐기는 중에도 엔터키 누르면 즉시 메인화면으로 이동
             if (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter)) break;
-
             timer += Time.unscaledDeltaTime;
             yield return null;
         }

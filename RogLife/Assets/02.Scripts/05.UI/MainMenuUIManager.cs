@@ -3,6 +3,7 @@ using UnityEngine;
 public class MainMenuUIManager : MonoBehaviour
 {
     public GameObject SettingPanel;
+    public GameObject ShopPanel;
 
     private void Start()
     {
@@ -34,5 +35,15 @@ public class MainMenuUIManager : MonoBehaviour
     public void CloseSettingPanel()
     {
         if (SettingPanel != null) SettingPanel.SetActive(false);
+    }
+
+    public void OpenShopPanel()
+    {
+        if (ShopPanel != null) ShopPanel.SetActive(true);
+    }
+
+    public void CloseShopPanel()
+    {
+        ShopPanel.SetActive(false);
     }
 }
