@@ -434,16 +434,19 @@ public class MapGenerator : MonoBehaviour
     }
 
     // ==========================================
-    // ★ [새로 추가] 마지막 층(예: 3층)을 클리어했을 때 실행되는 엔딩 함수
+    //  [새로 추가] 마지막 층(예: 3층)을 클리어했을 때 실행되는 엔딩 함수
     // ==========================================
-    private void ShowEnding()
+    // ==========================================
+    //  [기존 코드] private void ShowEnding()
+    // [수정된 코드] public으로 변경!
+    // ==========================================
+    public void ShowEnding()
     {
-        // 일단은 콘솔창에 메시지만 띄워둡니다.
-        Debug.Log("게임 클리어! 대망의 엔딩 연출이 시작됩니다!");
+        Debug.Log("게임 클리어! 진엔딩 연출이 시작됩니다!");
 
-        // 나중에 여기에 [해피 엔딩] 업적 달성 코드를 넣거나,
-        // 진엔딩 씬으로 넘어가는 코드를 추가하시면 됩니다!
+        if (AchievementManager.Instance != null)
+            AchievementManager.Instance.UnlockAchievement("TrueEnding");
 
-        // 예시: UnityEngine.SceneManagement.SceneManager.LoadScene("HappyEndingScene");
+        UnityEngine.SceneManagement.SceneManager.LoadScene("GoodEndingScene");
     }
 }

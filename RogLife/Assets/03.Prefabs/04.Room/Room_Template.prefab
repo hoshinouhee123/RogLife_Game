@@ -2133,7 +2133,7 @@ MonoBehaviour:
   dropCoinPrefab: {fileID: 9210097289332016191, guid: 984a3cd5ef2f1e146999f73236d61d50, type: 3}
   dropKeyPrefab: {fileID: 9210097289332016191, guid: f64fa360511aac44c8f14d8e27353a85, type: 3}
   dropHeartPrefab: {fileID: 9210097289332016191, guid: 741cba74bf5721c4a93b26fcc9b8ac82, type: 3}
-  roomBgRenderer: {fileID: 0}
+  roomBgRenderer: {fileID: 5040576565688198685}
   floorRenderer: {fileID: 5040576565688198685}
   isVisited: 0
   isItemRoom: 0

@@ -7,6 +7,12 @@ public class EnemyBullet : MonoBehaviour
     private float damage;
     private Vector2 direction;
 
+    private void Start()
+    {
+        // ★ 어떤 에러가 터져도, 총알은 태어난 지 3초(lifeTime)가 지나면 무조건 자동 삭제됩니다!
+        Destroy(gameObject, lifeTime);
+    }
+
     // ★ [수정됨] customSpeed를 추가로 받습니다. (기본값은 -1)
     // 숫자를 안 넣으면 프리팹 원래 속도를 쓰고, 숫자를 넣으면 그 속도로 날아갑니다!
     public void Setup(Vector2 dir, float dmg, float customSpeed = -1f)

@@ -107,6 +107,16 @@ public class EnemyData : ScriptableObject
     // ★ [새로 추가됨] 작성자님이 직접 만드신 거대한 레이저 프리팹을 여기에 넣으세요!
     public GameObject memoryLaserPrefab;
 
+    // ★ [새로 추가됨] 7번 패턴 (무궁화꽃 추적 별)
+    [Header("7번 패턴 (추적하는 별)")]
+    public GameObject chasingStarPrefab;
+
+    // ==========================================
+    // ★ [새로 추가됨] 발악 패턴 전용 작은 별 프리팹!
+    // ==========================================
+    [Header("최후의 발악 패턴 (흡수되는 별)")]
+    public GameObject absorbStarPrefab;
+
     public float patternCooldown = 4.0f;      // 평타 추격 후 레이저 패턴을 쓰는 주기
 
     [Header("보스 전용 설정")]

@@ -74,6 +74,13 @@ public class Enemy : MonoBehaviour
     private float fireTimer = 0f; // 원거리 몹 사격 쿨타임 타이머
 
     private bool isPhase2 = false; // 체력 50% 이하 확인용 스위치
+    private bool isPhase3 = false; // ★ [새로 추가됨] 체력 30% 이하 확인용
+
+    // [기존 변수들 아래에 추가]
+    private bool isDesperationPhase = false; // 발악 패턴 시작 스위치
+
+    // [변수 선언부 위쪽에 추가]
+    private bool isPlayerDeadHandled = false;
 
     void Awake()
     {
@@ -133,6 +140,9 @@ public class Enemy : MonoBehaviour
     // [Update() 함수 전체를 아래 코드로 덮어쓰기]
     void Update()
     {
+        // ★ [여기에 딱 1줄 추가!] 플레이어가 죽었으면 Update 즉시 정지
+        if (CheckPlayerDeathAndStopBoss()) return;
+
         if (!isAwake || enemyData == null) return;
 
         // 1. 대쉬 보스 회전 연출 (기존 코드)
@@ -184,6 +194,9 @@ public class Enemy : MonoBehaviour
 
     void FixedUpdate()
     {
+        // ★ [여기에 딱 1줄 추가!] 플레이어가 죽었으면 FixedUpdate 즉시 정지
+        if (CheckPlayerDeathAndStopBoss()) return;
+
         if (!isAwake || enemyData == null || playerTransform == null) return;
 
         // ★ [수정됨] 최종 보스 로직 추가
@@ -351,42 +364,58 @@ public class Enemy : MonoBehaviour
 
     public void TakeDamage(float damageAmount)
     {
-        // 사라졌을 때나 무적 등장 중일 때는 데미지 0!
-        if (currentHealth <= 0 || hasSplit || bossState == BossState.HiddenPattern || bossState == BossState.Reappearing) return;
+        // ==========================================
+        // ★ [완벽 방어] 발악 패턴 중이거나 무적일 때는 그 어떤 데미지도 절대 받지 않습니다!
+        // ==========================================
+        if (isDesperationPhase || currentHealth <= 0 || hasSplit || bossState == BossState.HiddenPattern || bossState == BossState.Reappearing || bossState == BossState.Invincible)
+            return;
+        // ==========================================
+        // ★ [추가됨] 5층 보스가 죽을 위기에 처하면 체력을 1로 고정하고 발악 시작!
+        // ==========================================
+        if (enemyData.isFinalBoss && !isDesperationPhase && (currentHealth - damageAmount) <= 0)
+        {
+            LogDebug("TakeDamage: entered isFinalBoss block");
+            currentHealth = 1; // 체력 1 고정!
+            isDesperationPhase = true;
 
+            // 체력바 숨기기
+            if (BossUIManager.Instance != null) BossUIManager.Instance.HideHPBar();
+            LogDebug("TakeDamage: HP bar hidden");
+
+            // 기존에 하던 모든 패턴을 강제로 중단하고 무적 발악 패턴으로 돌입!
+            LogDebug("TakeDamage: Calling StopAllCoroutines()");
+            StopAllCoroutines();
+            LogDebug("TakeDamage: StopAllCoroutines() finished");
+            
+            StartCoroutine(FinalDesperationRoutine());
+            LogDebug("TakeDamage: StartCoroutine(FinalDesperationRoutine()) finished. Returning.");
+            return;
+        }
+
+        // (이하 기존 TakeDamage 코드와 동일합니다)
         float actualDamage = Mathf.Min(damageAmount, currentHealth);
         currentHealth -= actualDamage;
         PlaySoundWithMixer(enemyData.hitSound);
 
         if (currentRoom != null && currentRoom.isBossRoom)
-        {
             if (BossUIManager.Instance != null) BossUIManager.Instance.ApplyBossDamage(actualDamage);
-        }
 
-        if (currentHealth <= 0)
-        {
-            Die();
-            return;
-        }
+        if (currentHealth <= 0) { Die(); return; }
 
-        // ★ [핵심 방어 2] hasSplit이 false일 때만 분열 허용
-        if (enemyData.isDashSplittingBoss && splitLevel < 2 && !hasSplit)
+        if (enemyData.isFinalBoss)
         {
-            if (currentHealth <= myMaxHealth / 2f)
+            if (!isPhase3 && currentHealth <= myMaxHealth * 0.3f)
             {
-                hasSplit = true; // 자물쇠 쾅! (이후 들어오는 총알은 무시됨)
-                Split();
+                isPhase3 = true; isPhase2 = true; patternPool.Clear();
+            }
+            else if (!isPhase2 && currentHealth <= myMaxHealth * 0.5f)
+            {
+                isPhase2 = true; patternPool.Clear();
             }
         }
-
-        // ==========================================
-        // ★ [새로 추가됨] 5층 보스 체력 50% 이하 진입 체크!
-        // ==========================================
-        if (enemyData.isFinalBoss && !isPhase2 && currentHealth <= myMaxHealth * 0.5f)
+        else if (enemyData.isDashSplittingBoss && splitLevel < 2)
         {
-            isPhase2 = true;
-            // 즉시 새로운 패턴 주머니를 섞도록 유도합니다.
-            patternPool.Clear();
+            if (currentHealth <= myMaxHealth / 2f) { hasSplit = true; Split(); }
         }
     }
 
@@ -474,13 +503,19 @@ public class Enemy : MonoBehaviour
         Destroy(gameObject);
     }
 
-    // [Enemy.cs 맨 아래쪽, OnDestroy 함수 덮어쓰기]
+    // ★ [완벽하게 수정된 OnDestroy] 유니티 엔진의 씬 언로드 충돌 버그를 완벽하게 차단합니다!
     private void OnDestroy()
     {
-        if (Camera.main != null) Camera.main.transform.rotation = Quaternion.Euler(0, 0, 0);
-        if (currentBlackFrame != null) Destroy(currentBlackFrame);
+        // 씬이 내려가는 중(언로드)이거나 게임이 완전히 꺼지는 중이라면 복구 작업을 아예 건너뜁니다!
+        if (gameObject.scene.isLoaded == false) return;
 
-        // ★ 보스가 죽어서 스크립트가 파괴될 때, 꺼져있던 맵이 있다면 전부 강제로 켜줍니다!
+        if (Camera.main != null)
+            Camera.main.transform.rotation = Quaternion.Euler(0, 0, 0);
+
+        if (currentBlackFrame != null)
+            Destroy(currentBlackFrame);
+
+        // 게임 도중 정상적으로 죽었을 때만 방들을 다시 켜줍니다.
         if (hiddenRooms != null)
         {
             foreach (var obj in hiddenRooms)
@@ -488,6 +523,7 @@ public class Enemy : MonoBehaviour
                 if (obj != null) obj.SetActive(true);
             }
         }
+
         if (MapGenerator.Instance != null && MapGenerator.Instance.backgroundTilemap != null)
         {
             MapGenerator.Instance.backgroundTilemap.gameObject.SetActive(true);
@@ -594,9 +630,15 @@ public class Enemy : MonoBehaviour
                     }
                     else
                     {
-                        // ★ [수정됨] 2페이즈(50% 이하)라면 5번 패턴(기억력 레이저) 추가!
-                        if (isPhase2) patternPool = new System.Collections.Generic.List<int>() { 0, 1, 2, 3, 4, 5 };
-                        else patternPool = new System.Collections.Generic.List<int>() { 0, 1, 2, 3, 4 };
+                        // ==========================================
+                        // ★ [수정됨] 3페이즈(30% 이하)라면 반전+별추적 합체 패턴(7) 추가!
+                        // ==========================================
+                        if (isPhase3)
+                            patternPool = new System.Collections.Generic.List<int>() { 0, 1, 2, 3, 4, 5, 6, 7 };
+                        else if (isPhase2)
+                            patternPool = new System.Collections.Generic.List<int>() { 0, 1, 2, 3, 4, 5, 6 };
+                        else
+                            patternPool = new System.Collections.Generic.List<int>() { 0, 1, 2, 3, 4 };
 
                         for (int i = 0; i < patternPool.Count; i++)
                         {
@@ -627,6 +669,8 @@ public class Enemy : MonoBehaviour
                 else if (currentPattern == 3) StartCoroutine(SpinPatternRoutine());
                 else if (currentPattern == 4) StartCoroutine(MeteorShowerRoutine());
                 else if (currentPattern == 5) StartCoroutine(MemoryLaserRoutine()); // 6번째 궁극기!
+                else if (currentPattern == 6) StartCoroutine(ChasingStarRoutine()); // ★ 7번째 궁극기 추가!
+                else if (currentPattern == 7) StartCoroutine(FlipAndStarPatternRoutine()); // ★ 추가됨!
             }
         }
     }
@@ -1110,5 +1154,357 @@ public class Enemy : MonoBehaviour
 
         // 🌟 패턴 종료 및 재등장
         yield return StartCoroutine(ReappearRoutine());
+    }
+
+    // ==========================================
+    // ★ 7번 패턴: 멈췄다 쫓아오는 별 10개 (맵 끝자락 스폰)
+    // ==========================================
+    private System.Collections.IEnumerator ChasingStarRoutine()
+    {
+        bossState = BossState.HiddenPattern;
+        mySpriteRenderer.enabled = false;
+        myCollider.enabled = false;
+
+        Vector3 roomCenter = currentRoom.transform.position;
+
+        // 맵 끝자락(모서리) 좌표들
+        float mapLeft = roomCenter.x - 6.0f;
+        float mapRight = roomCenter.x + 6.0f;
+        float mapBottom = roomCenter.y - 2.5f;
+        float mapTop = roomCenter.y + 3.5f;
+
+        // 소환된 별들을 기억해둘 리스트 (나중에 한 번에 지우기 위해)
+        System.Collections.Generic.List<ChasingStar> spawnedStars = new System.Collections.Generic.List<ChasingStar>();
+
+        // 1초마다 1개씩, 총 10개의 별을 무작위 맵 끝자락에 소환!
+        for (int i = 0; i < 17; i++)
+        {
+            Vector3 spawnPos = Vector3.zero;
+            int edge = Random.Range(0, 4); // 0:위, 1:아래, 2:왼쪽, 3:오른쪽
+
+            if (edge == 0) spawnPos = new Vector3(Random.Range(mapLeft, mapRight), mapTop, 0);
+            else if (edge == 1) spawnPos = new Vector3(Random.Range(mapLeft, mapRight), mapBottom, 0);
+            else if (edge == 2) spawnPos = new Vector3(mapLeft, Random.Range(mapBottom, mapTop), 0);
+            else if (edge == 3) spawnPos = new Vector3(mapRight, Random.Range(mapBottom, mapTop), 0);
+
+            if (enemyData.chasingStarPrefab != null)
+            {
+                GameObject starObj = Instantiate(enemyData.chasingStarPrefab, spawnPos, Quaternion.identity);
+                ChasingStar starScript = starObj.GetComponent<ChasingStar>();
+
+                // 별에게 타겟(플레이어)과 데미지를 넘겨주며 시작!
+                starScript.Setup(playerTransform, enemyData.damage);
+                spawnedStars.Add(starScript);
+            }
+
+            yield return new WaitForSeconds(0.6f); // 다음 별이 나올 때까지 0.8초 딜레이
+        }
+
+        // 별이 10개까지 전부 나오고 난 뒤, 플레이어가 3.5초 더 버티면 패턴 종료!
+        yield return new WaitForSeconds(3.5f);
+
+        // 살아있는 모든 별에게 스르륵 사라지라고 명령
+        foreach (var star in spawnedStars)
+        {
+            if (star != null) star.FadeOutAndDestroy();
+        }
+
+        yield return new WaitForSeconds(0.5f);
+
+        // 🌟 패턴 종료 및 보스 재등장
+        yield return StartCoroutine(ReappearRoutine());
+    }
+
+    // ==========================================
+    // ★ 8번 패턴(3페이즈): 화면 반전 + 17개 추적 별 폭격!!
+    // ==========================================
+    private System.Collections.IEnumerator FlipAndStarPatternRoutine()
+    {
+        bossState = BossState.HiddenPattern;
+        rb.linearVelocity = Vector2.zero;
+        if (mySpriteRenderer != null) mySpriteRenderer.enabled = false;
+        if (myCollider != null) myCollider.enabled = false;
+
+        Vector3 roomCenter = currentRoom.transform.position;
+
+        // 1. 다른 방 가리기 (검은 프레임 생성)
+        hiddenRooms.Clear();
+        RoomController[] allRooms = FindObjectsOfType<RoomController>();
+        foreach (var room in allRooms)
+        {
+            if (room != currentRoom) { hiddenRooms.Add(room.gameObject); room.gameObject.SetActive(false); }
+        }
+        if (MapGenerator.Instance != null && MapGenerator.Instance.backgroundTilemap != null)
+            MapGenerator.Instance.backgroundTilemap.gameObject.SetActive(false);
+
+        currentBlackFrame = new GameObject("BlackFrame");
+        currentBlackFrame.transform.position = roomCenter;
+        Texture2D tex = new Texture2D(1, 1); tex.SetPixel(0, 0, Color.black); tex.Apply();
+        Sprite blackSprite = Sprite.Create(tex, new Rect(0, 0, 1, 1), new Vector2(0.5f, 0.5f));
+
+        Vector3[] framePos = { new Vector3(0, 29.8f, 0), new Vector3(0, -29.8f, 0), new Vector3(-33.8f, 0, 0), new Vector3(33.8f, 0, 0) };
+        foreach (Vector3 pos in framePos)
+        {
+            GameObject wall = new GameObject("BlackWall");
+            wall.transform.SetParent(currentBlackFrame.transform);
+            wall.transform.localPosition = pos;
+            wall.transform.localScale = new Vector3(50f, 50f, 1f);
+            SpriteRenderer sr = wall.AddComponent<SpriteRenderer>();
+            sr.sprite = blackSprite; sr.color = Color.black; sr.sortingOrder = 32000;
+        }
+
+        // 2. 화면 180도 뒤집기 시작!
+        Camera cam = Camera.main;
+        float flipTime = 1.5f;
+        float timer = 0f;
+
+        while (timer < flipTime)
+        {
+            timer += Time.deltaTime;
+            float t = timer / flipTime;
+            cam.transform.rotation = Quaternion.Euler(0, 0, 180f * Mathf.SmoothStep(0f, 1f, t));
+            yield return null;
+        }
+        cam.transform.rotation = Quaternion.Euler(0, 0, 180f);
+
+        // 3. 화면이 뒤집힌 상태에서 17개의 별 소환 시작!
+        float mapLeft = roomCenter.x - 6.0f;
+        float mapRight = roomCenter.x + 6.0f;
+        float mapBottom = roomCenter.y - 2.5f;
+        float mapTop = roomCenter.y + 3.5f;
+
+        System.Collections.Generic.List<ChasingStar> spawnedStars = new System.Collections.Generic.List<ChasingStar>();
+
+        for (int i = 0; i < 17; i++)
+        {
+            Vector3 spawnPos = Vector3.zero;
+            int edge = Random.Range(0, 4);
+
+            if (edge == 0) spawnPos = new Vector3(Random.Range(mapLeft, mapRight), mapTop, 0);
+            else if (edge == 1) spawnPos = new Vector3(Random.Range(mapLeft, mapRight), mapBottom, 0);
+            else if (edge == 2) spawnPos = new Vector3(mapLeft, Random.Range(mapBottom, mapTop), 0);
+            else if (edge == 3) spawnPos = new Vector3(mapRight, Random.Range(mapBottom, mapTop), 0);
+
+            if (enemyData.chasingStarPrefab != null)
+            {
+                GameObject starObj = Instantiate(enemyData.chasingStarPrefab, spawnPos, Quaternion.identity);
+                ChasingStar starScript = starObj.GetComponent<ChasingStar>();
+                starScript.Setup(playerTransform, enemyData.damage);
+                spawnedStars.Add(starScript);
+            }
+
+            yield return new WaitForSeconds(0.6f); // 17개 쏟아짐
+        }
+
+        // 다 소환된 후 3.5초간 생존 버티기
+        yield return new WaitForSeconds(3.5f);
+
+        // 별들 지우기
+        foreach (var star in spawnedStars)
+        {
+            if (star != null) star.FadeOutAndDestroy();
+        }
+        yield return new WaitForSeconds(0.5f);
+
+        // 4. 패턴 끝! 화면 다시 원상 복구
+        timer = 0f;
+        while (timer < flipTime)
+        {
+            timer += Time.deltaTime;
+            float t = timer / flipTime;
+            cam.transform.rotation = Quaternion.Euler(0, 0, 180f + (180f * Mathf.SmoothStep(0f, 1f, t)));
+            yield return null;
+        }
+        cam.transform.rotation = Quaternion.Euler(0, 0, 0);
+
+        if (currentBlackFrame != null) Destroy(currentBlackFrame);
+        foreach (var obj in hiddenRooms) { if (obj != null) obj.SetActive(true); }
+        hiddenRooms.Clear();
+        if (MapGenerator.Instance != null && MapGenerator.Instance.backgroundTilemap != null)
+            MapGenerator.Instance.backgroundTilemap.gameObject.SetActive(true);
+
+        // 🌟 재등장!
+        yield return StartCoroutine(ReappearRoutine());
+    }
+
+    // ==========================================
+    // ★ 최후의 발악 [최종 연출 특화형] - 전투 없이 100% 안정적으로 엔딩 직행!
+    // ==========================================
+    private void LogDebug(string msg) {
+        System.IO.File.AppendAllText("C:\\Users\\user\\RogLife_Game\\debug_log.txt", System.DateTime.Now.ToString("HH:mm:ss.fff") + " : " + msg + "\n");
+    }
+
+    // ==========================================
+    // ★ 최후의 발악 (무한루프 0% + 카메라 흔들기 스크립트 복구 + 별 가림 해결)
+    // ==========================================
+    private System.Collections.IEnumerator FinalDesperationRoutine()
+    {
+        Debug.Log("[발악 패턴] 1. 시작");
+        bossState = BossState.Invincible;
+        mySpriteRenderer.enabled = false;
+        myCollider.enabled = false;
+
+        // 1. 방 중앙 세팅
+        Vector3 roomCenter = currentRoom.transform.position;
+        transform.position = roomCenter;
+
+        if (Camera.main != null)
+        {
+            Camera.main.transform.position = new Vector3(roomCenter.x, roomCenter.y, Camera.main.transform.position.z);
+        }
+
+        // 플레이어 무적 및 조작 차단
+        if (playerTransform != null)
+        {
+            playerTransform.position = roomCenter + new Vector3(0, -3f, 0);
+            PlayerController pc = playerTransform.GetComponent<PlayerController>();
+            if (pc != null) pc.enabled = false;
+
+            Player p = playerTransform.GetComponent<Player>();
+            if (p != null) p.godMode = true;
+        }
+
+        // 다른 맵 지우기
+        hiddenRooms.Clear();
+        RoomController[] allRooms = FindObjectsOfType<RoomController>();
+        foreach (var room in allRooms) { if (room != currentRoom) { hiddenRooms.Add(room.gameObject); room.gameObject.SetActive(false); } }
+        if (MapGenerator.Instance != null && MapGenerator.Instance.backgroundTilemap != null) MapGenerator.Instance.backgroundTilemap.gameObject.SetActive(false);
+
+        Bullet[] pBullets = FindObjectsOfType<Bullet>(); foreach (var b in pBullets) Destroy(b.gameObject);
+        EnemyBullet[] eBullets = FindObjectsOfType<EnemyBullet>(); foreach (var eb in eBullets) Destroy(eb.gameObject);
+        if (currentRoom != null && currentRoom.roomBgRenderer != null) currentRoom.roomBgRenderer.sprite = null;
+
+        // ==========================================
+        // ★ [수정됨] 하얀 배경을 저 뒤(Z: 10)로 밀어버려서 별을 절대 가리지 못하게 만듭니다!
+        // ==========================================
+        GameObject whiteBox = new GameObject("WhiteArena");
+        whiteBox.transform.position = roomCenter + new Vector3(0, 0, 10f); // Z축을 10으로 밀어버림!
+        Texture2D tex = new Texture2D(1, 1); tex.SetPixel(0, 0, Color.white); tex.Apply();
+        SpriteRenderer voidSr = whiteBox.AddComponent<SpriteRenderer>();
+        voidSr.sprite = Sprite.Create(tex, new Rect(0, 0, 1, 1), new Vector2(0.5f, 0.5f));
+        voidSr.sortingOrder = -500;
+        voidSr.transform.localScale = new Vector3(18f, 10.5f, 1f);
+
+        Vector3[] wallPos = { new Vector3(0, 5.25f, 0), new Vector3(0, -5.25f, 0), new Vector3(-9f, 0, 0), new Vector3(9f, 0, 0) };
+        Vector3[] wallScale = { new Vector3(18f, 1f, 1f), new Vector3(18f, 1f, 1f), new Vector3(1f, 10.5f, 1f), new Vector3(1f, 10.5f, 1f) };
+        for (int i = 0; i < 4; i++)
+        {
+            GameObject wall = new GameObject("ArenaWall");
+            wall.transform.SetParent(whiteBox.transform);
+            wall.transform.position = roomCenter + wallPos[i];
+            wall.tag = "Wall";
+            BoxCollider2D bc = wall.AddComponent<BoxCollider2D>();
+            bc.size = wallScale[i];
+        }
+
+        yield return new WaitForSecondsRealtime(1.5f);
+
+        mySpriteRenderer.enabled = true;
+        mySpriteRenderer.color = Color.black;
+
+        int totalWaves = 40;
+        float baseDelay = 0.4f;
+
+        for (int wave = 0; wave < totalWaves; wave++)
+        {
+            float progress = (float)wave / totalWaves;
+            float intensity = Mathf.Lerp(0.05f, 0.8f, progress);
+            float currentDelay = Mathf.Max(0.1f, baseDelay - (progress * 0.3f));
+
+            // ==========================================
+            // ★ [수정됨] CameraShake 스크립트를 다시 사용합니다!
+            // (기존 스크립트가 연속 호출을 알아서 예쁘게 처리해줍니다)
+            // ==========================================
+            if (CameraShake.Instance != null)
+            {
+                CameraShake.Instance.ShakeCamera(currentDelay, intensity);
+            }
+
+            int spawnCount = Mathf.FloorToInt(progress * 4f) + 1;
+
+            for (int i = 0; i < spawnCount; i++)
+            {
+                float randomAngle = Random.Range(0f, 360f);
+                Vector3 spawnDir = Quaternion.Euler(0, 0, randomAngle) * Vector3.up;
+
+                // 별의 Z축은 0으로 강제 고정하여 플레이어와 완벽하게 같은 깊이에 둡니다
+                Vector3 spawnPos = roomCenter + spawnDir * 15f;
+                spawnPos.z = 0f;
+
+                if (enemyData.absorbStarPrefab != null)
+                {
+                    GameObject star = Instantiate(enemyData.absorbStarPrefab, spawnPos, Quaternion.identity);
+
+                    // ==========================================
+                    // ★ [수정됨] 별의 레이어를 코드로 강제 상승시켜 무조건 맨 앞에 보이게 합니다!
+                    // ==========================================
+                    SpriteRenderer starSr = star.GetComponent<SpriteRenderer>();
+                    if (starSr != null) starSr.sortingOrder = 100;
+
+                    AbsorbStar abs = star.GetComponent<AbsorbStar>();
+                    if (abs == null) abs = star.AddComponent<AbsorbStar>();
+                    abs.Setup(transform, 8f, enemyData.damage);
+                }
+            }
+
+            yield return new WaitForSecondsRealtime(currentDelay);
+        }
+
+        // 지진이 끝나면 CameraShake 스크립트가 알아서 카메라 위치를 중앙으로 되돌려 놓습니다.
+
+        // 5. 최후의 폭발 비명 소리
+        PlaySoundWithMixer(enemyData.deathSound);
+        if (CameraShake.Instance != null) CameraShake.Instance.ShakeCamera(0.5f, 1.0f);
+
+        yield return new WaitForSecondsRealtime(1.0f);
+
+        // 6. 모든 정리 및 진엔딩 호출
+        Time.timeScale = 1f;
+
+        if (MapGenerator.Instance != null)
+        {
+            MapGenerator.Instance.ShowEnding();
+        }
+
+        Destroy(gameObject);
+    }
+
+    // ==========================================
+    // ★ [새로 추가] 게임오버 매니저와의 충돌을 원천 차단하는 강제 종료 함수!
+    // ==========================================
+    private bool CheckPlayerDeathAndStopBoss()
+    {
+        if (isPlayerDeadHandled) return true;
+
+        if (playerTransform != null)
+        {
+            Player p = playerTransform.GetComponent<Player>();
+            if (p != null && p.currentHealth <= 0)
+            {
+                isPlayerDeadHandled = true;
+
+                // 1. 보스의 모든 패턴(코루틴) 즉시 강제 종료!
+                StopAllCoroutines();
+
+                // 2. 물리 이동 정지
+                if (rb != null) rb.linearVelocity = Vector2.zero;
+
+                // 3. 만약 4번 패턴(화면 반전) 도중에 죽었다면, 카메라와 방을 강제로 원상복구!
+                if (Camera.main != null) Camera.main.transform.rotation = Quaternion.Euler(0, 0, 0);
+                if (currentBlackFrame != null) Destroy(currentBlackFrame);
+                if (hiddenRooms != null)
+                {
+                    foreach (var obj in hiddenRooms) { if (obj != null) obj.SetActive(true); }
+                    hiddenRooms.Clear();
+                }
+                if (MapGenerator.Instance != null && MapGenerator.Instance.backgroundTilemap != null)
+                    MapGenerator.Instance.backgroundTilemap.gameObject.SetActive(true);
+
+                // 4. 보스 AI 스크립트를 완전히 꺼버림 (이제 보스는 아무 짓도 못함)
+                this.enabled = false;
+                return true;
+            }
+        }
+        return false;
     }
 }

@@ -232,17 +232,19 @@ public class Player : MonoBehaviour
     {
         Debug.Log("플레이어 사망!");
 
-        // 조작을 불가능하게 막음
+        // ★ [완벽 해결 2] 죽는 순간 내 콜라이더(물리 판정)를 완전히 꺼버립니다!
+        // 이렇게 해야 맵에 남은 별들이 내 시체를 때려 무한 에러를 내는 것을 막습니다.
+        Collider2D col = GetComponent<Collider2D>();
+        if (col != null) col.enabled = false;
+
         if (playerController != null) playerController.enabled = false;
 
-        // 게임 오버 연출 시작!
         if (GameOverManager.Instance != null)
         {
             GameOverManager.Instance.StartGameOverSequence();
         }
         else
         {
-            // 매니저가 없을 경우의 대비책
             gameObject.SetActive(false);
         }
     }

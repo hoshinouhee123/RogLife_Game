@@ -535,6 +535,11 @@ MonoBehaviour:
     title: "BottleGod\uACFC \uBC14\uBCF4"
     description: "\uD658\uC7A5\uC758 \uB4C0\uC624"
     icon: {fileID: 21300000, guid: 87780f5fa06156649bf2816ac0e2c341, type: 3}
+  - id: BadEnding2
+    title: "\uAE68\uC5B4\uB098\uC9C0 \uBABB\uD558\uB294 \uAFC8"
+    description: "\uB2F9\uC2E0\uC740 \uACB0\uAD6D \uC545\uBABD\uC5D0\uC11C \uBC97\uC5B4\uB098\uC9C0
+      \uBABB\uD588\uC2B5\uB2C8\uB2E4."
+    icon: {fileID: 3091632805137230556, guid: 0a0a0465445314c449490f93908dd06a, type: 3}
 --- !u!4 &230020815
 Transform:
   m_ObjectHideFlags: 0

@@ -29,6 +29,9 @@ MonoBehaviour:
   - m_enabled: 1
     m_path: Assets/01. Scenes/Stage1_Scene.unity
     m_guid: 441b1ddb426bbf04d8ca608d206060ba
+  - m_enabled: 1
+    m_path: Assets/01. Scenes/GoodEndingScene.unity
+    m_guid: 9407693ab7aadd94880fc82d82a35c31
   m_HasScriptingDefines: 0
   m_ScriptingDefines: []
   m_PlayerSettingsYaml:

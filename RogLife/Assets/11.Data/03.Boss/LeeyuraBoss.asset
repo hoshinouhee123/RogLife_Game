@@ -51,6 +51,8 @@ MonoBehaviour:
   meteorFragmentPrefab: {fileID: 7474663709034961916, guid: 79977addcfca3494bafafad1d3934dc5, type: 3}
   meteorWarningPrefab: {fileID: 6936115591035740987, guid: ab41842390a6e67479a072be39c25eff, type: 3}
   memoryLaserPrefab: {fileID: 830919567896090066, guid: 5e0085a79e3b6ee49b205c6f4a9a68a0, type: 3}
+  chasingStarPrefab: {fileID: 5487677451288259264, guid: 3924bbf03c40ee5489d50bfecf2c5d2d, type: 3}
+  absorbStarPrefab: {fileID: 5487677451288259264, guid: 2743a24ebdcefce4f8f78750f4075d35, type: 3}
   patternCooldown: 4
   bossScale: 0.7
   animUp:

@@ -2072,6 +2072,22 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 5264277471615597871, guid: 8ada62d262084494186b7287a3a471f3, type: 3}
+      propertyPath: m_Size.x
+      value: 0.44545805
+      objectReference: {fileID: 0}
+    - target: {fileID: 5264277471615597871, guid: 8ada62d262084494186b7287a3a471f3, type: 3}
+      propertyPath: m_Size.y
+      value: 0.83020127
+      objectReference: {fileID: 0}
+    - target: {fileID: 5264277471615597871, guid: 8ada62d262084494186b7287a3a471f3, type: 3}
+      propertyPath: m_Offset.x
+      value: 0.09081486
+      objectReference: {fileID: 0}
+    - target: {fileID: 5264277471615597871, guid: 8ada62d262084494186b7287a3a471f3, type: 3}
+      propertyPath: m_Offset.y
+      value: -0.20223212
+      objectReference: {fileID: 0}
     - target: {fileID: 8833551262014650620, guid: 8ada62d262084494186b7287a3a471f3, type: 3}
       propertyPath: m_Constraints
       value: 4
@@ -5558,6 +5574,14 @@ MonoBehaviour:
   - speakerName: ...
     characterPortrait: {fileID: 0}
     sentence: "\uC815\uB9D0 \uC4F8\uC4F8\uD558\uB124."
+    useGlitch: 0
+    glitchPortrait: {fileID: 0}
+    glitchSentence: 
+    fullScreenCG: {fileID: 0}
+  floor5DeathDialogues:
+  - speakerName: ...
+    characterPortrait: {fileID: 0}
+    sentence: ...
     useGlitch: 0
     glitchPortrait: {fileID: 0}
     glitchSentence: 
