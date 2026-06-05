@@ -75,6 +75,18 @@ public class Player : MonoBehaviour
     void Start()
     {
         // ==========================================
+        // ★ [복구된 코드] 지워졌던 필수 컴포넌트 연결 고리들을 다시 살려냅니다!
+        // ==========================================
+        sr = GetComponent<SpriteRenderer>();
+        playerController = GetComponent<PlayerController>();
+
+        audioSource = GetComponent<AudioSource>();
+        if (audioSource == null) audioSource = gameObject.AddComponent<AudioSource>();
+
+        if (sfxMixerGroup != null) audioSource.outputAudioMixerGroup = sfxMixerGroup;
+        // ==========================================
+
+        // ==========================================
         // ★ [새로 추가됨] 시작할 때 영구 스탯 및 특전 적용!
         // ==========================================
         if (PlayerDataManager.Instance != null)
