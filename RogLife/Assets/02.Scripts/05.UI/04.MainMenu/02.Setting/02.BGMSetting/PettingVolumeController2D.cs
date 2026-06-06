@@ -74,17 +74,28 @@ public class PettingVolumeController2D : MonoBehaviour, IPointerDownHandler, IDr
         characterSprite.sprite = happyFace;
         UpdateUIText();
     }
-
+    
     public void OnDrag(PointerEventData eventData)
     {
         if (selectedAudio == AudioType.None) return;
+
+        // ==========================================
+        // 업적: 드래그해보기
+        // ==========================================
+        if (AchievementManager.Instance != null)
+        {
+            AchievementManager.Instance.UnlockAchievement("Drag");
+        }
 
         float increaseAmount = eventData.delta.magnitude * sensitivity * Time.deltaTime;
 
         if (selectedAudio == AudioType.BGM)
         {
             currentBGM += increaseAmount;
+
             if (currentBGM > maxVolume) currentBGM = maxVolume;
+
+
         }
         else if (selectedAudio == AudioType.SFX)
         {

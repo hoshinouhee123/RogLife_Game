@@ -33,6 +33,16 @@ public class MainMenuShopUI : MonoBehaviour
     public string[] buySuccessLines;
     public string[] buyFailLines;
 
+    // ==========================================
+    // ★ [새로 추가됨] 이스터에그: 돈 부족 연타 업적!
+    // ==========================================
+    [Header("이스터에그 (돈 부족 연타)")]
+    public string annoyedAchievementId = "AnnoyingCustomer"; // 해금할 업적 ID
+    public int annoyedFailThreshold = 5;                     // 돈 없이 몇 번 눌러야 빡치는지
+    public string[] annoyedFailLines;                        // 업적 달성 후 바뀌는 빡친(?) 대사들
+    private int failClickCount = 0;                          // 클릭 횟수 기억용 변수
+    // ==========================================
+
     public int baseCost = 50;
 
     private void Start()
@@ -51,6 +61,14 @@ public class MainMenuShopUI : MonoBehaviour
         if (merchantSpriteObject != null) merchantSpriteObject.SetActive(true);
         UpdateShopUI();
         if (randomClickLines.Length > 0) ShowMerchantDialogue("왔어? 물건 한 번 둘러봐.");
+        
+        if (AchievementManager.Instance != null)
+        {
+            AchievementManager.Instance.UnlockAchievement("Shop_Open");
+        }
+
+        // 상점을 켤 때마다 진상(?) 카운트 초기화 (원치 않으시면 지워주세요!)
+        failClickCount = 0;
     }
 
     public void CloseShop()
@@ -169,8 +187,43 @@ public class MainMenuShopUI : MonoBehaviour
         }
         else
         {
-            if (buyFailLines != null && buyFailLines.Length > 0)
+            // ==========================================
+            // ★ [이스터에그 발동 로직] 돈 부족한데 누를 때!
+            // ==========================================
+            bool isAnnoying = false;
+
+            if (AchievementManager.Instance != null)
+            {
+                // 이미 이 업적을 깼는지(진상 손님인지) 기록을 확인합니다.
+                isAnnoying = AchievementManager.Instance.IsUnlocked(annoyedAchievementId);
+            }
+
+            // 아직 안 깼다면 카운트를 1씩 올립니다.
+            if (!isAnnoying)
+            {
+                failClickCount++;
+                // 5번(목표치) 도달하면? 업적 해금!
+                if (failClickCount >= annoyedFailThreshold)
+                {
+                    if (AchievementManager.Instance != null)
+                    {
+                        AchievementManager.Instance.UnlockAchievement(annoyedAchievementId);
+                    }
+                    isAnnoying = true; // 이제부터는 평생 빡친 대사만 나옵니다.
+                }
+            }
+
+            // 업적을 깼다면(또는 방금 깨졌다면) 빡친 대사 무작위 출력!
+            if (isAnnoying && annoyedFailLines != null && annoyedFailLines.Length > 0)
+            {
+                ShowMerchantDialogue(annoyedFailLines[Random.Range(0, annoyedFailLines.Length)]);
+            }
+            // 아직 안 깼다면 평범한 돈 부족 대사 출력
+            else if (buyFailLines != null && buyFailLines.Length > 0)
+            {
                 ShowMerchantDialogue(buyFailLines[Random.Range(0, buyFailLines.Length)]);
+            }
+            // ==========================================
         }
     }
 

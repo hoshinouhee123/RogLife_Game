@@ -69,6 +69,17 @@ public class SettingsBGMManager : MonoBehaviour
             PlayerDataManager.Instance.SaveData();
 
             ApplyBGM(index);
+            //메인 BGM이 아닌 다른곡으로 바꾸면 도전과제 해금
+            if (index != 0)
+            {
+                // ==========================================
+                // BGM 바꾸기 업적 해금! (스팀 팝업 등장)
+                // ==========================================
+                if (AchievementManager.Instance != null)
+                {
+                    AchievementManager.Instance.UnlockAchievement("BGM_Change");
+                }
+            }
             dropdownListPanel.SetActive(false);
         }
     }
