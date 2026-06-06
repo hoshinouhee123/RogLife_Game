@@ -340,6 +340,11 @@ public class Player : MonoBehaviour
         {
             coinCount -= amount;
             UpdateCoinUI();
+            
+            if (AchievementManager.Instance != null)
+            {
+                AchievementManager.Instance.UnlockAchievement("Buy_InGame_Shop");
+            }
             return true; // 결제 성공!
         }
         return false; // 돈이 부족함!

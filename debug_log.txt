@@ -43,3 +43,8 @@
 01:14:35.931 : TakeDamage: Calling StopAllCoroutines()
 01:14:35.931 : TakeDamage: StopAllCoroutines() finished
 01:14:35.934 : TakeDamage: StartCoroutine(FinalDesperationRoutine()) finished. Returning.
+00:50:46.698 : TakeDamage: entered isFinalBoss block
+00:50:46.708 : TakeDamage: HP bar hidden
+00:50:46.708 : TakeDamage: Calling StopAllCoroutines()
+00:50:46.708 : TakeDamage: StopAllCoroutines() finished
+00:50:46.712 : TakeDamage: StartCoroutine(FinalDesperationRoutine()) finished. Returning.

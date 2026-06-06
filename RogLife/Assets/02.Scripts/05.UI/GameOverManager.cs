@@ -137,7 +137,16 @@ public class GameOverManager : MonoBehaviour
 
         while (creditsTransform.anchoredPosition.y < targetCreditY)
         {
-            if (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter)) break;
+            if (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter))
+            {
+                
+                if (AchievementManager.Instance != null)
+                {
+                    AchievementManager.Instance.UnlockAchievement("Skip_Credit");
+                }
+
+                break;
+            }
             creditsTransform.anchoredPosition += new Vector2(0, creditsScrollSpeed * Time.unscaledDeltaTime);
             yield return null;
         }
