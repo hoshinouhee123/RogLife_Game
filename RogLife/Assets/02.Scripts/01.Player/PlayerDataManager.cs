@@ -1,21 +1,26 @@
 using UnityEngine;
+using System.Collections.Generic; // 리스트를 쓰기 위해 필요!
 using System.IO;
 
-// 영구적으로 보존될 플레이어의 데이터
 [System.Serializable]
 public class PlayerSaveData
 {
-    public int totalCoins = 0;         // 누적 코인
+    public int totalCoins = 0;
 
-    // 스탯 업그레이드 레벨
-    public int hpLevel = 0;            // 체력 강화 레벨
-    public int dmgLevel = 0;           // 공격력 강화 레벨
-    public int spdLevel = 0;           // 스피드 강화 레벨
+    public int hpLevel = 0;
+    public int dmgLevel = 0;
+    public int spdLevel = 0;
 
-    // 시작 특전 업그레이드 레벨
-    public int startItemLevel = 0;     // 시작 시 주어지는 랜덤 아이템 개수
-    public int startCoinLevel = 0;     // 시작 코인 개수
-    public int startKeyLevel = 0;      // 시작 열쇠 개수
+    public int startItemLevel = 0;
+    public int startCoinLevel = 0;
+    public int startKeyLevel = 0;
+
+    //  [기존 코드 삭제] public int unlockedBgmCount = 0;   
+
+    //  [새로 추가됨] 내가 구매한 BGM의 '번호'들을 기억하는 리스트!
+    public List<int> unlockedBgmList = new List<int>();
+
+    public int selectedBgmIndex = 0;
 }
 
 public class PlayerDataManager : MonoBehaviour
