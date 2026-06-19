@@ -1,5 +1,5 @@
 using UnityEngine;
-using System.Collections.Generic; // 리스트를 쓰기 위해 필요!
+using System.Collections.Generic;
 using System.IO;
 
 [System.Serializable]
@@ -15,9 +15,6 @@ public class PlayerSaveData
     public int startCoinLevel = 0;
     public int startKeyLevel = 0;
 
-    //  [기존 코드 삭제] public int unlockedBgmCount = 0;   
-
-    //  [새로 추가됨] 내가 구매한 BGM의 '번호'들을 기억하는 리스트!
     public List<int> unlockedBgmList = new List<int>();
 
     public int selectedBgmIndex = 0;

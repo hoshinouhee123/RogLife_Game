@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
-using System.Collections;
-using TMPro;
+using DG.Tweening;
+using TMPro; // ★ [필수] DOTween을 사용하기 위한 주문!
 
 public class ItemUIManager : MonoBehaviour
 {
@@ -18,104 +18,79 @@ public class ItemUIManager : MonoBehaviour
     public Transform inventoryParent;
     public GameObject inventorySlotPrefab;
 
-    // [추가됨] 팝업창이 원래 있어야 할 '정상 위치'를 기억할 변수
-    private Vector2 originalPopupPos;
+    private RectTransform popupRect;
+    private Sequence popupSequence; // ★ 현재 재생 중인 DOTween 애니메이션 기억용
 
     private void Awake()
     {
         if (Instance == null) Instance = this;
+
+        if (popupPanel != null)
+        {
+            popupRect = popupPanel.GetComponent<RectTransform>();
+        }
     }
 
     private void Start()
     {
-        // 시작할 때 원래 위치를 저장해둡니다.
-        RectTransform popupRect = popupPanel.GetComponent<RectTransform>();
-        originalPopupPos = popupRect.anchoredPosition;
-
-        popupPanel.SetActive(false);
+        if (popupPanel != null) popupPanel.SetActive(false);
     }
 
-    // ★ [수정됨] 개수(count)를 받을 수 있게 추가
     public void ShowItemGet(ItemData item, int count = 1)
     {
-        // 1. 우측 인벤토리에는 먹은 '개수만큼' 아이콘을 반복해서 추가해 줍니다!
+        // 1. 우측 인벤토리에 아이템 아이콘 추가 (기존 동일)
         for (int i = 0; i < count; i++)
         {
             GameObject newSlot = Instantiate(inventorySlotPrefab, inventoryParent);
             newSlot.GetComponent<Image>().sprite = item.itemIcon;
         }
 
-        // 2. 팝업 코루틴으로 개수 전달
-        StartCoroutine(PopupRoutine(item, count));
-    }
-
-    private IEnumerator PopupRoutine(ItemData item, int count)
-    {
-        // 1. UI 텍스트 및 이미지 세팅
-        // 여러 개를 먹었다면 이름 뒤에 " x5" 처럼 개수를 붙여줍니다!
+        // 2. 팝업 데이터 세팅
         string countText = count > 1 ? " x" + count : "";
         popupNameText.text = item.itemName + countText;
-
         popupDescText.text = item.itemDescription;
         popupIcon.sprite = item.itemIcon;
 
-        RectTransform popupRect = popupPanel.GetComponent<RectTransform>();
-        popupRect.localScale = Vector3.one;
+        // 3. DOTween 팝업 연출 실행!
+        PlayPopupAnimation();
+    }
 
-        // 2. 화면 우측 바깥쪽 좌표 계산 (화면 너비만큼 오른쪽으로 밀어둠)
-        float slideOffset = Screen.width;
-        Vector2 startPos = originalPopupPos + new Vector2(slideOffset, 0); // 시작 위치 (우측 바깥)
-        Vector2 endPos = originalPopupPos;                                 // 목표 위치 (정중앙)
+    private void PlayPopupAnimation()
+    {
+        // ==========================================
+        // ★ [버그 완벽 차단] 이미 팝업이 떠있는 도중에 또 아이템을 먹었다면?
+        // 기존 애니메이션을 즉시 강제 취소해서 UI가 굳어버리는 버그를 막습니다!
+        // ==========================================
+        if (popupSequence != null && popupSequence.IsActive())
+        {
+            popupSequence.Kill();
+        }
 
-        // 팝업을 화면 오른쪽 밖으로 치운 뒤 켭니다.
-        popupRect.anchoredPosition = startPos;
+        // 초기화 (크기를 0으로 만들고 켬)
         popupPanel.SetActive(true);
+        popupRect.localScale = Vector3.zero;
 
-        // ===============================================
-        // 페르소나 스타일 등장: 우측 바깥에서 '슉!' 하고 미끄러져 옴
-        // ===============================================
-        float appearTime = 0.3f; // 엄청 빠르게 등장 (0.3초)
-        float timer = 0f;
+        // ==========================================
+        // ★ [DOTween 연출] Sequence를 사용해 차례대로 예약해 둡니다.
+        // ==========================================
+        popupSequence = DOTween.Sequence();
 
-        while (timer < appearTime)
+        // 중요! 아이템을 먹으면 게임 시간이 0(정지)이 되므로, 이걸 켜야 애니메이션이 움직입니다.
+        popupSequence.SetUpdate(true);
+
+        // ① [등장] 0.4초 동안 크기가 0에서 1로 '띠용!(OutBack)' 하고 커집니다.
+        popupSequence.Append(popupRect.DOScale(1f, 0.4f).SetEase(Ease.OutBack));
+
+        // ② [대기] 설정한 시간(2.5초) 동안 가만히 머무릅니다.
+        popupSequence.AppendInterval(popupDuration);
+
+        // ③ [퇴장] 0.3초 동안 다시 크기가 0으로 스르륵(InBack) 줄어듭니다.
+        popupSequence.Append(popupRect.DOScale(0f, 0.3f).SetEase(Ease.InBack));
+
+        // ④ [종료] 애니메이션이 완전히 끝나면 패널을 깔끔하게 끕니다.
+        popupSequence.OnComplete(() =>
         {
-            timer += Time.unscaledDeltaTime;
-            float t = timer / appearTime;
-
-            // 마법의 수식 (Ease-Out Cubic): 처음에 미친듯이 빠르고, 끝에서 슥~ 멈추는 페르소나식 브레이크
-            float easeT = 1f - Mathf.Pow(1f - t, 3f);
-
-            popupRect.anchoredPosition = Vector2.Lerp(startPos, endPos, easeT);
-            yield return null;
-        }
-        popupRect.anchoredPosition = endPos; // 정확한 중앙 위치 강제 고정
-
-        // ===============================================
-        // 화면에 떠있는 시간 대기
-        // ===============================================
-        yield return new WaitForSecondsRealtime(popupDuration);
-
-        // ===============================================
-        // 페르소나 스타일 퇴장: 반대편(좌측)으로 '휙!' 하고 베어내듯 날아감
-        // ===============================================
-        Vector2 exitPos = originalPopupPos + new Vector2(-slideOffset, 0); // 퇴장 위치 (좌측 바깥)
-        timer = 0f;
-        float disappearTime = 0.2f; // 나갈 땐 더 빠르게 퇴장 (0.2초)
-
-        while (timer < disappearTime)
-        {
-            timer += Time.unscaledDeltaTime;
-            float t = timer / disappearTime;
-
-            // 마법의 수식 (Ease-In Cubic): 서서히 출발해서 미친듯이 빠르게 사라짐
-            float easeT = t * t * t;
-
-            popupRect.anchoredPosition = Vector2.Lerp(endPos, exitPos, easeT);
-            yield return null;
-        }
-        popupRect.anchoredPosition = exitPos;
-
-        // 완전히 화면 밖으로 나가면 비활성화
-        popupPanel.SetActive(false);
+            popupPanel.SetActive(false);
+        });
     }
 }

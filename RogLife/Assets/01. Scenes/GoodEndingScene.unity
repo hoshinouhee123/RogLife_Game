@@ -554,9 +554,16 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GoodEndingManager
   endingDialogues:
-  - speakerName: "\uD14C\uC2A4\uD2B8"
+  - speakerName: ???
     characterPortrait: {fileID: 0}
-    sentence: "\uD14C\uC2A4\uD2B8\uD14C\uC2A4\uD2B8\uD14C\uC2A4\uD2B8\uD14C\uC2A4\uD2B8\uD14C\uC2A4\uD2B8\uD14C\uC2A4\uD2B8\uD14C\uC2A4\uD2B8"
+    sentence: "\uAC8C\uC784 \uD074\uB9AC\uC5B4 \u314A\u314A"
+    useGlitch: 0
+    glitchPortrait: {fileID: 0}
+    glitchSentence: 
+    fullScreenCG: {fileID: 0}
+  - speakerName: 
+    characterPortrait: {fileID: 0}
+    sentence: "1220067990 \uC2A4\uD300 \uCE5C\uCD94 \uC5B8\uC81C\uB4E0 \uD658\uC601"
     useGlitch: 0
     glitchPortrait: {fileID: 0}
     glitchSentence: 
