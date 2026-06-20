@@ -364,61 +364,59 @@ public class Enemy : MonoBehaviour
 
     public void TakeDamage(float damageAmount)
     {
-        // ==========================================
-        // ★ [완벽 방어] 발악 패턴 중이거나 무적일 때는 그 어떤 데미지도 절대 받지 않습니다!
-        // ==========================================
+        // 이미 발악 중이거나 무적이면 무시
         if (isDesperationPhase || currentHealth <= 0 || hasSplit || bossState == BossState.HiddenPattern || bossState == BossState.Reappearing || bossState == BossState.Invincible)
             return;
+
         // ==========================================
-        // ★ [추가됨] 5층 보스가 죽을 위기에 처하면 체력을 1로 고정하고 발악 시작!
+        // ★ 5층 보스 발악 돌입
         // ==========================================
         if (enemyData.isFinalBoss && !isDesperationPhase && (currentHealth - damageAmount) <= 0)
         {
-            LogDebug("TakeDamage: entered isFinalBoss block");
-            currentHealth = 1; // 체력 1 고정!
+            currentHealth = 1;
             isDesperationPhase = true;
 
-            // 체력바 숨기기
-            if (BossUIManager.Instance != null) BossUIManager.Instance.HideHPBar();
-            LogDebug("TakeDamage: HP bar hidden");
+            // ★ [완벽 방어막] UI 빈칸 에러가 터져도 게임이 안 멈추게 보호합니다!
+            try
+            {
+                if (BossUIManager.Instance != null) BossUIManager.Instance.HideHPBar();
+            }
+            catch (System.Exception e) { Debug.LogWarning("체력바 숨기기 에러 발생(무시됨): " + e.Message); }
 
-            // 기존에 하던 모든 패턴을 강제로 중단하고 무적 발악 패턴으로 돌입!
-            LogDebug("TakeDamage: Calling StopAllCoroutines()");
             StopAllCoroutines();
-            LogDebug("TakeDamage: StopAllCoroutines() finished");
-            
             StartCoroutine(FinalDesperationRoutine());
-            LogDebug("TakeDamage: StartCoroutine(FinalDesperationRoutine()) finished. Returning.");
             return;
         }
 
-        // (이하 기존 TakeDamage 코드와 동일합니다)
+        // ==========================================
+        // ★ 일반 데미지 적용
+        // ==========================================
         float actualDamage = Mathf.Min(damageAmount, currentHealth);
         currentHealth -= actualDamage;
         PlaySoundWithMixer(enemyData.hitSound);
 
         if (currentRoom != null && currentRoom.isBossRoom)
-            if (BossUIManager.Instance != null) BossUIManager.Instance.ApplyBossDamage(actualDamage);
+        {
+            // ★ [완벽 방어막] 여기서 UI 에러가 나도 보스가 좀비가 되지 않게 막습니다!
+            try
+            {
+                if (BossUIManager.Instance != null) BossUIManager.Instance.ApplyBossDamage(actualDamage);
+            }
+            catch { }
+        }
 
         if (currentHealth <= 0) { Die(); return; }
 
         if (enemyData.isFinalBoss)
         {
-            if (!isPhase3 && currentHealth <= myMaxHealth * 0.3f)
-            {
-                isPhase3 = true; isPhase2 = true; patternPool.Clear();
-            }
-            else if (!isPhase2 && currentHealth <= myMaxHealth * 0.5f)
-            {
-                isPhase2 = true; patternPool.Clear();
-            }
+            if (!isPhase3 && currentHealth <= myMaxHealth * 0.3f) { isPhase3 = true; isPhase2 = true; patternPool.Clear(); }
+            else if (!isPhase2 && currentHealth <= myMaxHealth * 0.5f) { isPhase2 = true; patternPool.Clear(); }
         }
         else if (enemyData.isDashSplittingBoss && splitLevel < 2)
         {
             if (currentHealth <= myMaxHealth / 2f) { hasSplit = true; Split(); }
         }
     }
-
     private void Split()
     {
         for (int i = 0; i < 2; i++)

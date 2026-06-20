@@ -72,19 +72,17 @@ public class BossUIManager : MonoBehaviour
     // ★ [추가됨] 보스전 시작 시 체력바 세팅
     public void InitBossHealth(EnemyData bossData)
     {
-        // 수학의 마법: 분열 보스(최대 4마리까지 쪼개짐)를 모두 죽이려면
-        // 원본 체력의 딱 '2배'의 데미지를 넣어야 방이 클리어 됩니다!
         float multiplier = bossData.isDashSplittingBoss ? 2f : 1f;
-
         totalBossMaxHP = bossData.maxHealth * multiplier;
         totalBossCurrentHP = totalBossMaxHP;
 
-        hpBarFill.fillAmount = 1f; // 꽉 채우기
+        // 빈칸 방어
+        if (hpBarFill != null) hpBarFill.fillAmount = 1f;
     }
 
     // ★ [추가됨] 보스 체력바 켜기 / 끄기
-    public void ShowHPBar() { hpBarGroup.SetActive(true); }
-    public void HideHPBar() { hpBarGroup.SetActive(false); }
+    public void ShowHPBar() { if (hpBarGroup != null) hpBarGroup.SetActive(true); }
+    public void HideHPBar() { if (hpBarGroup != null) hpBarGroup.SetActive(false); }
 
     // ★ [추가됨] 보스가 맞을 때마다 체력바 깎기
     public void ApplyBossDamage(float damage)
@@ -92,7 +90,8 @@ public class BossUIManager : MonoBehaviour
         totalBossCurrentHP -= damage;
         if (totalBossCurrentHP < 0) totalBossCurrentHP = 0;
 
-        hpBarFill.fillAmount = totalBossCurrentHP / totalBossMaxHP;
+        // 빈칸 방어
+        if (hpBarFill != null) hpBarFill.fillAmount = totalBossCurrentHP / totalBossMaxHP;
     }
 
     // 컷신 코루틴 (방어 코드 포함)
